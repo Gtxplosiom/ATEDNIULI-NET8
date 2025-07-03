@@ -4,18 +4,20 @@ Copyright (c) 2025 Gtxplosion
 
 Permission is hereby granted, free of charge, to any person obtaining a copy
 of this software and associated documentation files (the "Software"), to deal
-in the Software without restriction, including without limitation the rights
-to use, copy, modify, merge, publish, distribute, sublicense, and/or sell
-copies of the Software, and to permit persons to whom the Software is
-furnished to do so, subject to the following conditions:
+in the Software under the following conditions:
 
-The above copyright notice and this permission notice shall be included in all
-copies or substantial portions of the Software.
+1. You may use, copy, modify, merge, publish, distribute, sublicense,
+   and/or sell derivative works of the Software, **provided the Software itself
+   is not sold**. Selling, licensing the Software itself (or any substantial
+   portions) is **prohibited** unless you obtain a **commercial license** from
+   Gtxplosion.
 
-THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND, EXPRESS OR
-IMPLIED, INCLUDING BUT NOT LIMITED TO THE WARRANTIES OF MERCHANTABILITY,
-FITNESS FOR A PARTICULAR PURPOSE AND NONINFRINGEMENT. IN NO EVENT SHALL THE
-AUTHORS OR COPYRIGHT HOLDERS BE LIABLE FOR ANY CLAIM, DAMAGES OR OTHER
-LIABILITY, WHETHER IN AN ACTION OF CONTRACT, TORT OR OTHERWISE, ARISING FROM,
-OUT OF OR IN CONNECTION WITH THE SOFTWARE OR THE USE OR OTHER DEALINGS IN THE
-SOFTWARE.
+2. You must include this copyright notice, permission notice, and this
+   Commons Clause in all copies or substantial portions of the Software.
+
+3. You must display "Powered by Gtxplosion" in any user interface or
+   documentation of applications that include the Software.
+
+4. **Patent Pending**
+
+THE SOFTWARE IS PROVIDED "AS IS", WITHOUT WARRANTY OF ANY KIND...
