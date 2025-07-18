@@ -9,4 +9,41 @@
         <UseWPF>true</UseWPF>
     </PropertyGroup>
 
+    <ItemGroup>
+      <None Remove="Assets\camera-mouse-preview.png" />
+      <None Remove="Assets\listening-disabled.png" />
+      <None Remove="Assets\listening.png" />
+      <None Remove="Assets\typing-disabled.png" />
+      <None Remove="Assets\typing.png" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Content Include="Assets\Icons\camera-mouse-preview.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Assets\Icons\listening-disabled.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Assets\Icons\listening.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Assets\Icons\typing-disabled.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Assets\Icons\typing.png">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+    </ItemGroup>
+
+    <ItemGroup>
+      <PackageReference Include="NAudio" Version="2.2.1" />
+      <PackageReference Include="Porcupine" Version="3.0.10" />
+      <PackageReference Include="Whisper.net" Version="1.8.1" />
+    </ItemGroup>
+
+    <ItemGroup>
+      <Folder Include="Models\" />
+      <Folder Include="Views\" />
+    </ItemGroup>
+
 </Project>
