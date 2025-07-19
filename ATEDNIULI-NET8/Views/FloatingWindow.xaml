@@ -1,0 +1,18 @@
+﻿<Window x:Class="ATEDNIULI_NET8.Views.FloatingWindow"
+        xmlns="http://schemas.microsoft.com/winfx/2006/xaml/presentation"
+        xmlns:x="http://schemas.microsoft.com/winfx/2006/xaml"
+        xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
+        xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
+        xmlns:local="clr-namespace:ATEDNIULI_NET8.Views"
+        mc:Ignorable="d"
+        Title="FloatingWindow" Height="70" Width="200"
+        Left="{Binding LeftState}" Top="{Binding TopState}"
+        Visibility="{Binding VisibilityState}"
+        WindowStyle="None">
+    <Border CornerRadius="8">
+        <TextBlock Text="Floating Window"
+                   HorizontalAlignment="Center"
+                   VerticalAlignment="Center"
+                   FontSize="16"/>
+    </Border>
+</Window>

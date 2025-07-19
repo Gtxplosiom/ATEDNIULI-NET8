@@ -1,6 +1,7 @@
 ﻿using System.Windows;
 using ATEDNIULI_NET8.ViewModels;
 using ATEDNIULI_NET8.Services;
+using ATEDNIULI_NET8.Views;
 
 namespace ATEDNIULI_NET8;
 
@@ -15,6 +16,12 @@ public partial class App : Application
         // Ig connect an mainwindowviewmodel
         // by making it the datacontext han mainwindow
         var wakeWordDetector = new WakeWordDetector(_ACCESSKEY);
+
+        // Connect datacontext para binding purposes
+        var floatingWindow = new FloatingWindow()   // temp la ini
+        {
+            DataContext = new FloatingWindowViewModel(wakeWordDetector)
+        };
 
         var mainWindow = new MainWindow()
         {

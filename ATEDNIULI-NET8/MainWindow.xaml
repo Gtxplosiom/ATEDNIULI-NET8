@@ -16,8 +16,8 @@
             <RowDefinition Height="33*"/>
         </Grid.RowDefinitions>
 
-        <Image Width="32" Source="/Assets/Icons/camera-mouse-preview.png"/>
-        <Image Grid.Row="1" Width="32" Source="/Assets/Icons/typing-disabled.png"/>
-        <Image Grid.Row="2" Width="32" Source="{Binding ListeningIcon}"/>
+        <Image Name="CameraMousePreviewIcon" Width="32" Source="/Assets/Icons/camera-mouse-preview.png"/>
+        <Image Name="TypingIcon" Grid.Row="1" Width="32" Source="/Assets/Icons/typing-disabled.png"/>
+        <Image Name="ListeningIcon" Grid.Row="2" Width="32" Source="{Binding ListeningIcon}"/>
     </Grid>
 </Window>
