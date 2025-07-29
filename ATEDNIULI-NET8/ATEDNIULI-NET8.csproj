@@ -28,6 +28,12 @@
       <Content Include="Assets\Models\Sis_tem_good.onnx">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
+	  <Content Include="Assets\Models\ggml-base.en.bin">
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
+	  <Content Include="Assets\Models\silero_vad.onnx">
+		<CopyToOutputDirectory>Always</CopyToOutputDirectory>
+	  </Content>
     </ItemGroup>
 
     <ItemGroup>
@@ -36,10 +42,7 @@
       <PackageReference Include="NAudio" Version="2.2.1" />
       <PackageReference Include="Porcupine" Version="3.0.10" />
       <PackageReference Include="Whisper.net" Version="1.8.1" />
-    </ItemGroup>
-
-    <ItemGroup>
-      <Folder Include="Models\" />
+      <PackageReference Include="Whisper.net.Runtime" Version="1.8.1" />
     </ItemGroup>
 
 </Project>

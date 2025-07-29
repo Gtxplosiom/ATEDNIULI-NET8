@@ -2,6 +2,7 @@
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows.Threading;
+using System.Windows;
 
 namespace ATEDNIULI_NET8.ViewModels
 {
@@ -9,18 +10,21 @@ namespace ATEDNIULI_NET8.ViewModels
     {
         // Wake word detection services
         private readonly PorcupineService? _porcupineWakeWordDetector;
+        private readonly WhisperService? _whisperService;
 
         private ImageSource? _listeningIcon;
 
         // Adjust this so models can be dynamically switched
-        public MainWindowViewModel(PorcupineService? wakeWordDetector)
+        public MainWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService)
         {
             _porcupineWakeWordDetector = wakeWordDetector;
+            _whisperService = whisperService;
 
             if (_porcupineWakeWordDetector != null) _porcupineWakeWordDetector.WakeWordDetected += OnWakeWordDetected;
+            if (_whisperService != null) _whisperService.DoneTranscription += OnDoneTranscription;
 
             // Default icon niya
-            Dispatcher.CurrentDispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 ListeningIcon = new BitmapImage(new Uri("pack://application:,,,/Assets/Icons/listening-disabled.png"));
             });
@@ -46,13 +50,33 @@ namespace ATEDNIULI_NET8.ViewModels
             bi.EndInit();
             bi.Freeze(); // Apparently need anay i freeze an image kun ig change via bindings
 
-            Dispatcher.CurrentDispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
                 ListeningIcon = bi;
             });
 
             // pause the wake word for performance purposes
             _porcupineWakeWordDetector?.PauseWakeWordDetection();
+            _whisperService?.RecordAudioInput();
+        }
+
+        // fix ths it makes the icon change back instantly
+        public void OnDoneTranscription()
+        {
+            var bi = new BitmapImage();
+
+            bi.BeginInit();
+            bi.UriSource = new Uri("pack://application:,,,/Assets/Icons/listening-disabled.png");
+            bi.EndInit();
+            bi.Freeze(); // do the same here
+
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                ListeningIcon = bi;
+            });
+
+            // pause the wake word for performance purposes
+            _porcupineWakeWordDetector?.ResumeWakeWordDetection();
         }
     }
 }

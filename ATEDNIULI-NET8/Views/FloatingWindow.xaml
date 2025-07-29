@@ -10,7 +10,7 @@
         Visibility="{Binding VisibilityState}"
         WindowStyle="None">
     <Border CornerRadius="8">
-        <TextBlock Text="Floating Window"
+        <TextBlock Text="{Binding TranscriptionText}"
                    HorizontalAlignment="Center"
                    VerticalAlignment="Center"
                    FontSize="16"/>

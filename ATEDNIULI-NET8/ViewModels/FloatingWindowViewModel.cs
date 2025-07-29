@@ -1,4 +1,5 @@
 ﻿using ATEDNIULI_NET8.Services;
+using ATEDNIULI_NET8.Models;
 using System.Windows.Threading;
 using System.Windows;
 using System.Numerics;
@@ -8,19 +9,31 @@ namespace ATEDNIULI_NET8.ViewModels
     public class FloatingWindowViewModel : ViewModelBase
     {
         private readonly PorcupineService? _porcupineWakeWordDetector;
+        private readonly WhisperService? _whisperService;
 
         private readonly Vector2 _screenDimentions;
         private readonly int _taskBarHeight;
 
-        private string? _visibilityState;
+        // floating window properties
+        private Visibility _visibilityState;
         private int _leftState;
         private int _topState;
 
-        public FloatingWindowViewModel(PorcupineService? wakeWordDetector)
+        // models
+        private readonly TranscriptionModel _transcriptionModel = new();
+
+        public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService)
         {
             _porcupineWakeWordDetector = wakeWordDetector;
+            _whisperService = whisperService;
 
             if (_porcupineWakeWordDetector != null) _porcupineWakeWordDetector.WakeWordDetected += OnWakeWordDetected;
+
+            if (_whisperService != null)
+            {
+                _whisperService.ProcessingTranscription += OnProcessingTranscription;
+                _whisperService.DoneProcessing += OnDoneProcessing;
+            }
 
             _screenDimentions = new Vector2(
                 (int)SystemParameters.PrimaryScreenWidth,
@@ -28,13 +41,27 @@ namespace ATEDNIULI_NET8.ViewModels
             );
             _taskBarHeight = (int)_screenDimentions.Y - (int)SystemParameters.WorkArea.Height;
 
-            VisibilityState = "Collapsed"; // Default state
+            VisibilityState = Visibility.Collapsed; // Default state
+
+            // is this right??
+            if (_transcriptionModel != null) TranscriptionText = "Listening";
+
             LeftState = (int)_screenDimentions.X - 270; // Magic numbers (for now) 200(floating window width) + 70(main window width)
             TopState = (int)_screenDimentions.Y - (70 + _taskBarHeight); // 70(height of floating window)
         }
 
         // Properties
-        public string? VisibilityState
+        public string? TranscriptionText
+        {
+            get => _transcriptionModel.Text;
+            set
+            {
+                _transcriptionModel.Text = value;
+                OnPropertyChanged(nameof(TranscriptionText));
+            }
+        }
+
+        public Visibility VisibilityState
         {
             get => _visibilityState;
             set
@@ -66,9 +93,26 @@ namespace ATEDNIULI_NET8.ViewModels
 
         private void OnWakeWordDetected()
         {
-            Dispatcher.CurrentDispatcher.Invoke(() =>
+            Application.Current.Dispatcher.Invoke(() =>
             {
-                VisibilityState = "Visible";
+                VisibilityState = Visibility.Visible;
+            });
+        }
+
+        private void OnProcessingTranscription()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                TranscriptionText = "Processing...";
+            });
+        }
+
+        private void OnDoneProcessing()
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                VisibilityState = Visibility.Collapsed;
+                TranscriptionText = "Listening";
             });
         }
     }
