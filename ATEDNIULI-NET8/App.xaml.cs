@@ -7,7 +7,7 @@ namespace ATEDNIULI_NET8;
 
 public partial class App : Application
 {
-    private const string _ACCESSKEY = "Ubdx/XnkxCBeLVpW6g67NBTCBRv5+pF/J/3jE9noNbPYXE98zJY09w==";
+    private const string AccessKey = "Ubdx/XnkxCBeLVpW6g67NBTCBRv5+pF/J/3jE9noNbPYXE98zJY09w==";
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -15,17 +15,17 @@ public partial class App : Application
 
         // Ig connect an mainwindowviewmodel
         // by making it the datacontext han mainwindow
-        var wakeWordDetector = new WakeWordDetector(_ACCESSKEY);
+        var porcupineService = new PorcupineService(AccessKey);
 
         // Connect datacontext para binding purposes
-        var floatingWindow = new FloatingWindow()   // temp la ini
+        var floatingWindow = new FloatingWindow()
         {
-            DataContext = new FloatingWindowViewModel(wakeWordDetector)
+            DataContext = new FloatingWindowViewModel(porcupineService)
         };
 
         var mainWindow = new MainWindow()
         {
-            DataContext = new MainWindowViewModel(wakeWordDetector)
+            DataContext = new MainWindowViewModel(porcupineService)
         };
         mainWindow.Show();
     }

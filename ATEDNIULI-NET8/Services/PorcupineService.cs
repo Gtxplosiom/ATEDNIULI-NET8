@@ -3,7 +3,7 @@ using Pv;
 
 namespace ATEDNIULI_NET8.Services
 {
-    public class WakeWordDetector
+    public class PorcupineService
     {
         // Mga instances
         private readonly Porcupine? _porcupine;
@@ -24,7 +24,7 @@ namespace ATEDNIULI_NET8.Services
         // tbh di ko sure paano ini pero nayakan mas gucci adi
         private readonly object _bufferLock = new();
 
-        public WakeWordDetector(string accessKey)
+        public PorcupineService(string accessKey)
         {
             _porcupine = Porcupine.FromBuiltInKeywords(
                 accessKey,
@@ -70,6 +70,7 @@ namespace ATEDNIULI_NET8.Services
         }
 
         // Setup the mic for audio streaming
+        // Set this up later as a reusable module
         private int SetupAudioInput()
         {
             try

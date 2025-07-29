@@ -10,14 +10,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="Assets\camera-mouse-preview.png" />
-      <None Remove="Assets\listening-disabled.png" />
-      <None Remove="Assets\listening.png" />
-      <None Remove="Assets\typing-disabled.png" />
-      <None Remove="Assets\typing.png" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Content Include="Assets\Icons\camera-mouse-preview.png">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
@@ -33,9 +25,14 @@
       <Content Include="Assets\Icons\typing.png">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
+      <Content Include="Assets\Models\Sis_tem_good.onnx">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
+      <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.22.1" />
       <PackageReference Include="NAudio" Version="2.2.1" />
       <PackageReference Include="Porcupine" Version="3.0.10" />
       <PackageReference Include="Whisper.net" Version="1.8.1" />

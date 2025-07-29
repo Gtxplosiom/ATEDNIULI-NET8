@@ -7,7 +7,7 @@ namespace ATEDNIULI_NET8.ViewModels
 {
     public class FloatingWindowViewModel : ViewModelBase
     {
-        private WakeWordDetector? _wakeWordDetector;
+        private readonly PorcupineService? _porcupineWakeWordDetector;
 
         private readonly Vector2 _screenDimentions;
         private readonly int _taskBarHeight;
@@ -16,11 +16,11 @@ namespace ATEDNIULI_NET8.ViewModels
         private int _leftState;
         private int _topState;
 
-        public FloatingWindowViewModel(WakeWordDetector? wakeWordDetector)
+        public FloatingWindowViewModel(PorcupineService? wakeWordDetector)
         {
-            _wakeWordDetector = wakeWordDetector;
+            _porcupineWakeWordDetector = wakeWordDetector;
 
-            _wakeWordDetector.WakeWordDetected += OnWakeWordDetected;
+            if (_porcupineWakeWordDetector != null) _porcupineWakeWordDetector.WakeWordDetected += OnWakeWordDetected;
 
             _screenDimentions = new Vector2(
                 (int)SystemParameters.PrimaryScreenWidth,

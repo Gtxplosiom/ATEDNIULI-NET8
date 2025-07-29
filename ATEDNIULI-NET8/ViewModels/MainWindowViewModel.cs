@@ -7,15 +7,17 @@ namespace ATEDNIULI_NET8.ViewModels
 {
     public class MainWindowViewModel : ViewModelBase
     {
-        private WakeWordDetector? _wakeWordDetector;
+        // Wake word detection services
+        private readonly PorcupineService? _porcupineWakeWordDetector;
 
         private ImageSource? _listeningIcon;
 
-        public MainWindowViewModel(WakeWordDetector wakeWordDetector)
+        // Adjust this so models can be dynamically switched
+        public MainWindowViewModel(PorcupineService? wakeWordDetector)
         {
-            _wakeWordDetector = wakeWordDetector;
+            _porcupineWakeWordDetector = wakeWordDetector;
 
-            _wakeWordDetector.WakeWordDetected += OnWakeWordDetected;
+            if (_porcupineWakeWordDetector != null) _porcupineWakeWordDetector.WakeWordDetected += OnWakeWordDetected;
 
             // Default icon niya
             Dispatcher.CurrentDispatcher.Invoke(() =>
