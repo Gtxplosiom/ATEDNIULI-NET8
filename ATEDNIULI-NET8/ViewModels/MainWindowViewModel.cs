@@ -1,7 +1,6 @@
 ﻿using ATEDNIULI_NET8.Services;
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
-using System.Windows.Threading;
 using System.Windows;
 
 namespace ATEDNIULI_NET8.ViewModels

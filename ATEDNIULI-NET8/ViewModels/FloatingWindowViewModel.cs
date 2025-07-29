@@ -1,8 +1,10 @@
 ﻿using ATEDNIULI_NET8.Services;
 using ATEDNIULI_NET8.Models;
-using System.Windows.Threading;
 using System.Windows;
 using System.Numerics;
+using System.Windows.Input;
+using ATEDNIULI_NET8.ViewModels.Commands;
+using System.Diagnostics;
 
 namespace ATEDNIULI_NET8.ViewModels
 {
@@ -10,6 +12,7 @@ namespace ATEDNIULI_NET8.ViewModels
     {
         private readonly PorcupineService? _porcupineWakeWordDetector;
         private readonly WhisperService? _whisperService;
+        private readonly IntentService? _intentService;
 
         private readonly Vector2 _screenDimentions;
         private readonly int _taskBarHeight;
@@ -22,10 +25,15 @@ namespace ATEDNIULI_NET8.ViewModels
         // models
         private readonly TranscriptionModel _transcriptionModel = new();
 
-        public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService)
+        // Commands
+        public ICommand? OpenCameraMouse { get; }
+        public ICommand? CloseCameraMouse { get; }
+
+        public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, IntentService? intentService)
         {
             _porcupineWakeWordDetector = wakeWordDetector;
             _whisperService = whisperService;
+            _intentService = intentService;
 
             if (_porcupineWakeWordDetector != null) _porcupineWakeWordDetector.WakeWordDetected += OnWakeWordDetected;
 
@@ -49,6 +57,9 @@ namespace ATEDNIULI_NET8.ViewModels
 
             LeftState = (int)_screenDimentions.X - 270; // Magic numbers (for now) 200(floating window width) + 70(main window width)
             TopState = (int)_screenDimentions.Y - (70 + _taskBarHeight + 25); // 70(height of floating window) and 25(height of notification window)
+
+            // Initialize commands
+            OpenCameraMouse = new OpenCameraMouseCommand();
         }
 
         // Properties
@@ -63,7 +74,7 @@ namespace ATEDNIULI_NET8.ViewModels
                 OnPropertyChanged(nameof(TranscriptionText));
             }
         }
-        
+
         // pati adi pero for now adi la anay
         public string? NotificationText
         {
@@ -136,6 +147,18 @@ namespace ATEDNIULI_NET8.ViewModels
             {
                 NotificationText = transcriptionResult;
             });
+
+            var intent = _intentService?.PredictIntent(transcriptionResult);
+
+            CommandHandler(intent);
+        }
+
+        private void CommandHandler(string? command)
+        {
+            if (command == "OpenCameraMouse")
+            {
+                OpenCameraMouse?.Execute(null);
+            }
         }
     }
 }

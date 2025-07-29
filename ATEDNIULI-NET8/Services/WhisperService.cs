@@ -47,6 +47,7 @@ namespace ATEDNIULI_NET8.Services
         private async void processAudioFile()
         {
             using var fileStream = File.OpenRead(_outputFilePath);
+            var transcriptionResult = "";
 
             // gingamit an application invoke chuchu kay aadi bakround thread(async) gin i-invoke an mga events
             Application.Current.Dispatcher.Invoke(() => ProcessingTranscription?.Invoke());
@@ -56,8 +57,13 @@ namespace ATEDNIULI_NET8.Services
             {
                 Debug.WriteLine($"{result.Start}->{result.End}: {result.Text}");
 
-                TranscriptionResultReady?.Invoke(result.Text);
+                transcriptionResult = result.Text;
             }
+
+            // gawas ha foreach kay na i-invoke twice/multiple times
+            // investigate later if possible to make the transcription not in a foreach
+            // but for now leave it be because net examples said so lol
+            TranscriptionResultReady?.Invoke(transcriptionResult);
 
             Application.Current.Dispatcher.Invoke(() => DoneProcessing?.Invoke());
         }
