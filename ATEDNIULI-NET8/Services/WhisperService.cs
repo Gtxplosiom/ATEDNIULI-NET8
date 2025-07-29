@@ -28,6 +28,9 @@ namespace ATEDNIULI_NET8.Services
         public event Action? ProcessingTranscription;
         public event Action? DoneProcessing;
 
+        // store the transctription result here
+        public event Action<string>? TranscriptionResultReady;
+
         public WhisperService(string whisperModelPath, string sileroVADModelPath)
         {
             // This section creates the whisperFactory object which is used to create the processor object.
@@ -52,6 +55,8 @@ namespace ATEDNIULI_NET8.Services
             await foreach (var result in _whisperProcessor.ProcessAsync(fileStream))
             {
                 Debug.WriteLine($"{result.Start}->{result.End}: {result.Text}");
+
+                TranscriptionResultReady?.Invoke(result.Text);
             }
 
             Application.Current.Dispatcher.Invoke(() => DoneProcessing?.Invoke());

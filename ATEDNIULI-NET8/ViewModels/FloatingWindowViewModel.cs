@@ -33,6 +33,7 @@ namespace ATEDNIULI_NET8.ViewModels
             {
                 _whisperService.ProcessingTranscription += OnProcessingTranscription;
                 _whisperService.DoneProcessing += OnDoneProcessing;
+                _whisperService.TranscriptionResultReady += OnTranscriptionResultReady;
             }
 
             _screenDimentions = new Vector2(
@@ -47,10 +48,12 @@ namespace ATEDNIULI_NET8.ViewModels
             if (_transcriptionModel != null) TranscriptionText = "Listening";
 
             LeftState = (int)_screenDimentions.X - 270; // Magic numbers (for now) 200(floating window width) + 70(main window width)
-            TopState = (int)_screenDimentions.Y - (70 + _taskBarHeight); // 70(height of floating window)
+            TopState = (int)_screenDimentions.Y - (70 + _taskBarHeight + 25); // 70(height of floating window) and 25(height of notification window)
         }
 
         // Properties
+        // TODO: kinda useless pa an pag pass hin transcription model text, bangin i consider nala an string pareho han una.
+        // since service class man ini
         public string? TranscriptionText
         {
             get => _transcriptionModel.Text;
@@ -58,6 +61,17 @@ namespace ATEDNIULI_NET8.ViewModels
             {
                 _transcriptionModel.Text = value;
                 OnPropertyChanged(nameof(TranscriptionText));
+            }
+        }
+        
+        // pati adi pero for now adi la anay
+        public string? NotificationText
+        {
+            get => _transcriptionModel.NotificationText;
+            set
+            {
+                _transcriptionModel.NotificationText = value;
+                OnPropertyChanged(nameof(NotificationText));
             }
         }
 
@@ -115,7 +129,16 @@ namespace ATEDNIULI_NET8.ViewModels
                 TranscriptionText = "Listening";
             });
         }
+
+        private void OnTranscriptionResultReady(string transcriptionResult)
+        {
+            Application.Current.Dispatcher.Invoke(() =>
+            {
+                NotificationText = transcriptionResult;
+            });
+        }
     }
 }
 
 // TODO: Do something about the magic numbers
+// TODO: maybe floating window just serves as a state for transcription, or for typing

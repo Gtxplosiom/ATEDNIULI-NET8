@@ -26,6 +26,12 @@ public partial class App : Application
             DataContext = new FloatingWindowViewModel(porcupineService, whisperService)
         };
 
+        var notificationWindow = new NotificationWindow()
+        {
+            DataContext = new FloatingWindowViewModel(porcupineService, whisperService)
+        };
+        notificationWindow.Show();
+
         var mainWindow = new MainWindow()
         {
             DataContext = new MainWindowViewModel(porcupineService, whisperService)
@@ -33,3 +39,5 @@ public partial class App : Application
         mainWindow.Show();
     }
 }
+
+// TODO: Maybe use a config file or something

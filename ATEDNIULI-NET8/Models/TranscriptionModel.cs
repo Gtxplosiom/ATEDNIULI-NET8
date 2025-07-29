@@ -10,6 +10,7 @@ namespace ATEDNIULI_NET8.Models
         PropertyChanged?.Invoke(this, new PropertyChangedEventArgs(propertyName));
 
         private string _text = "";
+        private string _notificationText = "";
 
         public string Text
         {
@@ -20,6 +21,19 @@ namespace ATEDNIULI_NET8.Models
                 {
                     _text = value;
                     OnPropertyChanged(nameof(Text));
+                }
+            }
+        }
+
+        public string NotificationText
+        {
+            get => _notificationText;
+            set
+            {
+                if (_notificationText != value)
+                {
+                    _notificationText = value;
+                    OnPropertyChanged(nameof(NotificationText));
                 }
             }
         }

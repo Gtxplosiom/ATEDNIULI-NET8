@@ -23,6 +23,6 @@ public partial class MainWindow : Window
     private void PositionWindow()
     {
         Left = _screenDimentions.X - this.Width;
-        Top = _screenDimentions.Y - (this.Height + _taskBarHeight);
+        Top = _screenDimentions.Y - (this.Height + _taskBarHeight + 25); // 25 is the notification window height
     }
 }
