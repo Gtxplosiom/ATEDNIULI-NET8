@@ -50,6 +50,9 @@ namespace ATEDNIULI_NET8.ViewModels
             {
                 ListeningIcon = bi;
             });
+
+            // pause the wake word for performance purposes
+            _porcupineWakeWordDetector?.PauseWakeWordDetection();
         }
     }
 }
