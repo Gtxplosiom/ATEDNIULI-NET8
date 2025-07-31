@@ -2,7 +2,6 @@
 using ATEDNIULI_NET8.ViewModels;
 using ATEDNIULI_NET8.Services;
 using ATEDNIULI_NET8.Views;
-using System.IO.Packaging;
 
 namespace ATEDNIULI_NET8;
 
@@ -29,17 +28,18 @@ public partial class App : Application
         // para ma prevent an dadamo na instances hin foating viewmodel ngan multiple subscription for services as well
         // cleaner and safer
         var mainWindowViewModel = new MainWindowViewModel(porcupineService, whisperService);
-        var floatingWindoViewModel = new FloatingWindowViewModel(porcupineService, whisperService, intentService);
+        var floatingWindowViewModel = new FloatingWindowViewModel(porcupineService, whisperService, intentService);
+        var cameraMouseWindowViewModel = new CameraMouseWindowViewModel();
 
         // Connect datacontext para bindings
         var floatingWindow = new FloatingWindow()
         {
-            DataContext = floatingWindoViewModel
+            DataContext = floatingWindowViewModel
         };
 
         var notificationWindow = new NotificationWindow()
         {
-            DataContext = floatingWindoViewModel
+            DataContext = floatingWindowViewModel
         };
         notificationWindow.Show();
 

@@ -23,6 +23,7 @@ namespace ATEDNIULI_NET8.Services
             
             var result = _predictor.Predict(new InputData { Text = inputText });
 
+            // TODO: himua na above la hin threshold (mga 80%) an ma re-return
             return result.PredictedIntent;
         }
     }
@@ -30,15 +31,15 @@ namespace ATEDNIULI_NET8.Services
     public class InputData
     {
         [LoadColumn(0)]
-        public string Text { get; set; }
+        public string? Text { get; set; }
 
         [LoadColumn(1)]
-        public string Intent { get; set; }
+        public string? Intent { get; set; }
     }
 
     public class IntentPrediction
     {
         [ColumnName("PredictedLabel")]
-        public string PredictedIntent;
+        public string? PredictedIntent;
     }
 }

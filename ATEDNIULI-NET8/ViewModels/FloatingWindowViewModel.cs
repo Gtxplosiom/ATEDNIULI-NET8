@@ -17,17 +17,18 @@ namespace ATEDNIULI_NET8.ViewModels
         private readonly Vector2 _screenDimentions;
         private readonly int _taskBarHeight;
 
+        private CameraMouseWindowViewModel? _cameraMouseWindowViewModel = new CameraMouseWindowViewModel();
+
         // floating window properties
         private Visibility _visibilityState;
         private int _leftState;
         private int _topState;
 
-        // models
+        // Models
         private readonly TranscriptionModel _transcriptionModel = new();
 
         // Commands
-        public ICommand? OpenCameraMouse { get; }
-        public ICommand? CloseCameraMouse { get; }
+        public ICommand? ToggleCameraMouse { get; }
 
         public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, IntentService? intentService)
         {
@@ -59,7 +60,7 @@ namespace ATEDNIULI_NET8.ViewModels
             TopState = (int)_screenDimentions.Y - (70 + _taskBarHeight + 25); // 70(height of floating window) and 25(height of notification window)
 
             // Initialize commands
-            OpenCameraMouse = new OpenCameraMouseCommand();
+            ToggleCameraMouse = new ToggleCameraMouseCommand(_cameraMouseWindowViewModel);
         }
 
         // Properties
@@ -155,9 +156,11 @@ namespace ATEDNIULI_NET8.ViewModels
 
         private void CommandHandler(string? command)
         {
-            if (command == "OpenCameraMouse")
+            // TODO: ig change ini para an command toggle or mas better ada kun an cameramousewindowviewmodel instance ig instance nala didi
+            // kay para ma access an mga properties tikang didi kaysa ha cameramouse command class
+            if (command == "OpenCameraMouse" || command == "CloseCameraMouse")
             {
-                OpenCameraMouse?.Execute(null);
+                ToggleCameraMouse?.Execute(null);
             }
         }
     }

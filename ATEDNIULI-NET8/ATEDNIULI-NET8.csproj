@@ -44,6 +44,9 @@
     </ItemGroup>
 
     <ItemGroup>
+      <PackageReference Include="Emgu.CV" Version="4.11.0.5746" />
+      <PackageReference Include="Emgu.CV.Bitmap" Version="4.11.0.5746" />
+      <PackageReference Include="Emgu.CV.runtime.windows" Version="4.11.0.5746" />
       <PackageReference Include="MathNet.Numerics" Version="5.0.0" />
       <PackageReference Include="Microsoft.ML" Version="4.0.2" />
       <PackageReference Include="Microsoft.ML.OnnxRuntime" Version="1.22.1" />

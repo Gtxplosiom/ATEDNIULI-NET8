@@ -1,4 +1,5 @@
 ﻿using System.ComponentModel;
+using System.Windows;
 
 // Para magin reusable an mga property event handler
 // ig i-inherit la hin mga viewmodel classes
