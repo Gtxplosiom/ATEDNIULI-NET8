@@ -1,5 +1,6 @@
 ﻿using Emgu.CV;
 using Emgu.CV.Structure;
+using System.Drawing;
 using System.Windows;
 using System.Windows.Media.Imaging;
 
@@ -35,8 +36,11 @@ namespace ATEDNIULI_NET8.ViewModels
                 if (frame != null)
                 {
                     var image = frame.ToImage<Bgr, byte>();
-                    var bitmap = ConvertToBitmapSource(image);
 
+                    // TODO: put facial landmark detection here
+
+                    var bitmap = ConvertToBitmapSource(image);
+                    
                     Application.Current.Dispatcher.Invoke(() =>
                     {
                         WebcamFrame = bitmap;
@@ -49,16 +53,22 @@ namespace ATEDNIULI_NET8.ViewModels
 
         private BitmapSource ConvertToBitmapSource(Image<Bgr, byte> image)
         {
-            var bitmap = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                image.ToBitmap().GetHbitmap(),
+            var bitmap = image.ToBitmap();
+            var hBitmap = bitmap.GetHbitmap();
+
+            var bitmapSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
+                hBitmap,
                 IntPtr.Zero,
                 Int32Rect.Empty,
                 BitmapSizeOptions.FromEmptyOptions());
 
-            // kailangan kay para an pag change hin camera frame aada ha ui thread mismo
-            bitmap.Freeze();
+            // freeze para thread safe ha ui
+            bitmapSource.Freeze();
 
-            return bitmap;
+            // unmanaged resource cleanup para fix ha toggling camera mouse memory buildup
+            DeleteObject(hBitmap);
+
+            return bitmapSource;
         }
 
         public void StartCamera()
@@ -84,5 +94,9 @@ namespace ATEDNIULI_NET8.ViewModels
             _cameraThread?.Join();
             _capture?.Dispose();
         }
+
+        // Pan delete hin bitmap
+        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
+        public static extern bool DeleteObject(IntPtr hObject);
     }
 }
