@@ -17,7 +17,7 @@ namespace ATEDNIULI_NET8.ViewModels
         private readonly Vector2 _screenDimentions;
         private readonly int _taskBarHeight;
 
-        private CameraMouseWindowViewModel? _cameraMouseWindowViewModel = new CameraMouseWindowViewModel();
+        private CameraMouseWindowViewModel? _cameraMouseWindowViewModel;
 
         // floating window properties
         private Visibility _visibilityState;
@@ -30,11 +30,14 @@ namespace ATEDNIULI_NET8.ViewModels
         // Commands
         public ICommand? ToggleCameraMouse { get; }
 
-        public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, IntentService? intentService)
+        public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, IntentService? intentService, CameraMouseWindowViewModel cameraMouseWindowViewModel)
         {
             _porcupineWakeWordDetector = wakeWordDetector;
             _whisperService = whisperService;
             _intentService = intentService;
+
+            // connect camera mouse window view model
+            _cameraMouseWindowViewModel = cameraMouseWindowViewModel;
 
             if (_porcupineWakeWordDetector != null) _porcupineWakeWordDetector.WakeWordDetected += OnWakeWordDetected;
 

@@ -14,6 +14,7 @@ public partial class App : Application
     private const string WhisperModelPath = "Assets/Models/ggml-base.en.bin";
     private const string SileroVADModelPath = "Assets/Models/silero_vad.onnx";
     private const string IntentModelPath = "Assets/Models/intent-model.zip";
+    private const string ShapePredictorModelPath = "Assets/Models/shape_predictor_68_face_landmarks.dat";
 
     protected override void OnStartup(StartupEventArgs e)
     {
@@ -24,12 +25,17 @@ public partial class App : Application
         var porcupineService = new PorcupineService(AccessKey);
         var whisperService = new WhisperService(WhisperModelPath, SileroVADModelPath);
         var intentService = new IntentService(IntentModelPath);
+        var facialLandmarkService = new FacialLandmarkService(ShapePredictorModelPath);
 
         // para ma prevent an dadamo na instances hin foating viewmodel ngan multiple subscription for services as well
         // cleaner and safer
         var mainWindowViewModel = new MainWindowViewModel(porcupineService, whisperService);
-        var floatingWindowViewModel = new FloatingWindowViewModel(porcupineService, whisperService, intentService);
-        var cameraMouseWindowViewModel = new CameraMouseWindowViewModel();
+        var cameraMouseWindowViewModel = new CameraMouseWindowViewModel(facialLandmarkService);
+
+        // ig connect an camera mouse window view model to the floating window view model
+        // para madali matawag ha commands
+        // TODO: make this cleaner?? for now adi la anay
+        var floatingWindowViewModel = new FloatingWindowViewModel(porcupineService, whisperService, intentService, cameraMouseWindowViewModel);
 
         // Connect datacontext para bindings
         var floatingWindow = new FloatingWindow()

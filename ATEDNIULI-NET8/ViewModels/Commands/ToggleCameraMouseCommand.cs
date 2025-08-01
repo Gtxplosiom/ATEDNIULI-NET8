@@ -32,7 +32,7 @@ namespace ATEDNIULI_NET8.ViewModels.Commands
             // convert parameter to bool
             var param = parameter as bool?;
 
-            if (param == false && _cameraMouseWindowViewModel._isRunning)
+            if (param == false && _cameraMouseWindowViewModel.isRunning)
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -41,7 +41,7 @@ namespace ATEDNIULI_NET8.ViewModels.Commands
 
                 _cameraMouseWindowViewModel?.StopCamera();
             }
-            else if (param == true || !_cameraMouseWindowViewModel._isRunning)
+            else if (param == true || !_cameraMouseWindowViewModel.isRunning)
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {

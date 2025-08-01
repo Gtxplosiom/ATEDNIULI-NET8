@@ -1,8 +1,8 @@
-﻿using Emgu.CV;
-using Emgu.CV.Structure;
-using System.Drawing;
-using System.Windows;
+﻿using System.Windows;
 using System.Windows.Media.Imaging;
+using OpenCvSharp;
+using OpenCvSharp.WpfExtensions;
+using ATEDNIULI_NET8.Services;
 
 namespace ATEDNIULI_NET8.ViewModels
 {
@@ -12,9 +12,17 @@ namespace ATEDNIULI_NET8.ViewModels
         private Thread? _cameraThread;
 
         // flag/switch hin camera loop
-        public bool _isRunning = false;
+        public bool isRunning = false;
 
+        // property variable
         private BitmapSource? _webcamFrame;
+
+        private readonly FacialLandmarkService? _facialLandmarkService;
+
+        public CameraMouseWindowViewModel(FacialLandmarkService facialLandmarkService)
+        {
+            _facialLandmarkService = facialLandmarkService;
+        }
 
         // Properties
         public BitmapSource? WebcamFrame
@@ -30,73 +38,57 @@ namespace ATEDNIULI_NET8.ViewModels
         // Methods
         private void CameraLoop()
         {
-            while (_isRunning)
+            using var frame = new Mat();
+            while (_capture != null && isRunning)
             {
-                using var frame = _capture.QueryFrame();
-                if (frame != null)
+                if (!_capture.Read(frame) || frame.Empty()) { Thread.Sleep(10); continue; }
+
+                // Flip camera frame horizontally para "mirrored" an preview
+                Cv2.Flip(frame, frame, FlipMode.Y);
+
+                // usagr here
+                var faces = _facialLandmarkService.DetectLandmarks(frame);
+                foreach (var pts in faces)
                 {
-                    var image = frame.ToImage<Bgr, byte>();
-
-                    // TODO: put facial landmark detection here
-
-                    var bitmap = ConvertToBitmapSource(image);
-                    
-                    Application.Current.Dispatcher.Invoke(() =>
+                    foreach (var p in pts)
                     {
-                        WebcamFrame = bitmap;
-                    });
+                        Cv2.Circle(frame, p, 2, Scalar.Red, -1);
+                    }    
                 }
 
+                var wb = frame.ToWriteableBitmap();
+
+                // kailangan i freeze para ui thread safe
+                // kun diri ma crash
+                wb.Freeze();
+
+                Application.Current.Dispatcher.Invoke(() => WebcamFrame = wb);
                 Thread.Sleep(33);
             }
         }
 
-        private BitmapSource ConvertToBitmapSource(Image<Bgr, byte> image)
-        {
-            var bitmap = image.ToBitmap();
-            var hBitmap = bitmap.GetHbitmap();
-
-            var bitmapSource = System.Windows.Interop.Imaging.CreateBitmapSourceFromHBitmap(
-                hBitmap,
-                IntPtr.Zero,
-                Int32Rect.Empty,
-                BitmapSizeOptions.FromEmptyOptions());
-
-            // freeze para thread safe ha ui
-            bitmapSource.Freeze();
-
-            // unmanaged resource cleanup para fix ha toggling camera mouse memory buildup
-            DeleteObject(hBitmap);
-
-            return bitmapSource;
-        }
-
         public void StartCamera()
         {
-            // TODO: make this dynamic kay an camera index depende ha system
-            // an common 0 takay may instances pareho han akon na duha an cam an front is index 1
-            // make this front cam or webcam ha computer
-            _capture = new VideoCapture(1, VideoCapture.API.DShow);
+            // Change to OpenCvSharp.VideoCapture
+            _capture = new VideoCapture(1, VideoCaptureAPIs.DSHOW);
 
             _cameraThread = new Thread(CameraLoop)
             {
                 IsBackground = true
             };
 
-            _isRunning = true;
+            isRunning = true;
             _cameraThread.Start();
         }
 
-        // TODO: need pa ig apply hin todo na cleanup kay nag titikadako la an ram kun kakadamo ko gin to-toggle an camera mouse
         public void StopCamera()
         {
-            _isRunning = false;
+            isRunning = false;
             _cameraThread?.Join();
             _capture?.Dispose();
         }
-
-        // Pan delete hin bitmap
-        [System.Runtime.InteropServices.DllImport("gdi32.dll")]
-        public static extern bool DeleteObject(IntPtr hObject);
     }
 }
+
+// TODO: position camera preview on the top right (previous) or ano mas maupay
+// then kailangan i-apply lat an preview or possibly an ui ma move kun an cursor aadto para diri makasalipod ha user
