@@ -6,6 +6,9 @@ namespace ATEDNIULI_NET8.ViewModels.Commands
 {
     public class ToggleCameraMouseCommand : CommandBase
     {
+        // maraot ini kun mvvm but for now adi la anay
+        // TODO: instantiate pereferrable in the service requesting it and use events as toggles
+        // hahays damo na an todo sh*ts
         private readonly CameraMouseWindowViewModel? _cameraMouseWindowViewModel;
         private readonly CameraMouseWindow? _cameraMouseWindow;
 
@@ -26,7 +29,10 @@ namespace ATEDNIULI_NET8.ViewModels.Commands
         {
             Debug.WriteLine("ToggleCameraMouse executed");
 
-            if (_cameraMouseWindowViewModel._isRunning)
+            // convert parameter to bool
+            var param = parameter as bool?;
+
+            if (param == false && _cameraMouseWindowViewModel._isRunning)
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {
@@ -35,7 +41,7 @@ namespace ATEDNIULI_NET8.ViewModels.Commands
 
                 _cameraMouseWindowViewModel?.StopCamera();
             }
-            else
+            else if (param == true || !_cameraMouseWindowViewModel._isRunning)
             {
                 Application.Current.Dispatcher.Invoke(() =>
                 {

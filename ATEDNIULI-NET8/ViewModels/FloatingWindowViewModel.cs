@@ -158,9 +158,13 @@ namespace ATEDNIULI_NET8.ViewModels
         {
             // TODO: ig change ini para an command toggle or mas better ada kun an cameramousewindowviewmodel instance ig instance nala didi
             // kay para ma access an mga properties tikang didi kaysa ha cameramouse command class
-            if (command == "OpenCameraMouse" || command == "CloseCameraMouse")
+            if (command == "OpenCameraMouse")
             {
-                ToggleCameraMouse?.Execute(null);
+                ToggleCameraMouse?.Execute(true);
+            }
+            else if (command == "CloseCameraMouse")
+            {
+                ToggleCameraMouse?.Execute(false);
             }
         }
     }
