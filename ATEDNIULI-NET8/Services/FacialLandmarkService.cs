@@ -1,7 +1,8 @@
 ﻿using DlibDotNet;
 using OpenCvSharp;
 using CvPoint = OpenCvSharp.Point;
-using System.Runtime.InteropServices; // Required for Marshal.Copy
+using System.Runtime.InteropServices;
+using System.Diagnostics; // Required for Marshal.Copy
 
 public class FacialLandmarkService : IDisposable
 {
@@ -47,14 +48,27 @@ public class FacialLandmarkService : IDisposable
         for (int i = 0; i < rects.Length; i++)
         {
             using var shape = _sp.Detect(dImg, rects[i]);
-            var pts = new CvPoint[shape.Parts];
-            for (uint j = 0; j < shape.Parts; j++)
+
+            // isolated/specific points list
+            var specificPts = new List<CvPoint>();
+
+            // Extract Nose point landmark, para ha mouse control
+            var nosePoint = shape.GetPart(30);
+            specificPts.Add(new CvPoint(nosePoint.X, nosePoint.Y));
+
+            // Extract Mouth landmarks, para ha mouse functions
+            for (uint j = 48; j <= 67; j++)
             {
-                var p = shape.GetPart(j);
-                pts[j] = new CvPoint(p.X, p.Y);
+                if (j < shape.Parts)
+                {
+                    var mouthPoints = shape.GetPart(j);
+                    specificPts.Add(new CvPoint(mouthPoints.X, mouthPoints.Y));
+                }
             }
-            results[i] = pts;
+
+            results[i] = specificPts.ToArray();
         }
+
         return results;
     }
 
