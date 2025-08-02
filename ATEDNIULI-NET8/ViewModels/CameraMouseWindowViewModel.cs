@@ -199,7 +199,7 @@ namespace ATEDNIULI_NET8.ViewModels
             _capture?.Dispose();
 
             _mouseMoveTimer?.Dispose();
-            _mouseMoveTimer = null; // Clear the reference
+            _mouseMoveTimer = null;
         }
     }
 }
