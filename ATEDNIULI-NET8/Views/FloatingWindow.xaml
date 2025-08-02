@@ -8,7 +8,8 @@
         Title="FloatingWindow" Height="70" Width="200"
         Left="{Binding LeftState}" Top="{Binding TopState}"
         Visibility="{Binding VisibilityState}"
-        WindowStyle="None">
+        WindowStyle="None"
+        Topmost="True">
     <Border CornerRadius="8">
         <TextBlock Text="{Binding TranscriptionText}"
                    HorizontalAlignment="Center"

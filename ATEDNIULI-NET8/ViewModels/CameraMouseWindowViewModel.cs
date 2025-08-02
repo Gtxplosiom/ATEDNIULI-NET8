@@ -4,6 +4,7 @@ using OpenCvSharp;
 using OpenCvSharp.WpfExtensions;
 using ATEDNIULI_NET8.Services;
 using System.Diagnostics;
+using Microsoft.VisualBasic.ApplicationServices;
 
 namespace ATEDNIULI_NET8.ViewModels
 {
@@ -62,19 +63,58 @@ namespace ATEDNIULI_NET8.ViewModels
                     for (int i = 0; i < faceLandmarks.Length; i++)
                     {
                         var pts = faceLandmarks[i];
-                        if (pts == null) continue;
+                        if (pts == null || pts.Length <= 45) continue;
 
-                        for (int j = 0; j < pts.Length; j++)
+                        // Get center of head (e.g. between eyes)
+                        OpenCvSharp.Point headLeft = pts[2];
+                        OpenCvSharp.Point headRight = pts[14];
+                        OpenCvSharp.Point headCenter = new OpenCvSharp.Point(
+                            (headLeft.X + headRight.X) / 2,
+                            (headLeft.Y + headRight.Y) / 2
+                        );
+
+                        // Draw dynamic tracking circles around the head
+                        Cv2.Circle(frame, headCenter, 20, Scalar.Red, 2);   // Inner circle
+                        Cv2.Circle(frame, headCenter, 60, Scalar.Cyan, 2);  // Outer circle
+
+                        // Get nose tip position
+                        OpenCvSharp.Point noseTip = pts[30];
+                        Cv2.Circle(frame, noseTip, 5, Scalar.Yellow, -1);  // Draw nose tip
+
+                        // Calculate vector from head center to nose tip
+                        int dx = noseTip.X - headCenter.X;
+                        int dy = noseTip.Y - headCenter.Y;
+
+                        // Compute distance from center
+                        double dist = Math.Sqrt(dx * dx + dy * dy);
+
+                        // Check if nose is outside inner circle
+                        int innerRadius = 20;
+                        int outerRadius = 60;
+
+                        if (dist > innerRadius)
                         {
-                            var p = pts[j];
+                            // Normalize direction vector
+                            double length = Math.Max(dist, 1); // avoid divide-by-zero
+                            double dirX = dx / length;
+                            double dirY = dy / length;
 
-                            Cv2.Circle(frame, p, 2, Scalar.Red, -1);
+                            // Speed scaling: small if within outer, large if beyond outer
+                            // co-consider nala ada na fixed speed factor
+                            double speedFactor = dist > outerRadius ? 10 : 4;
 
-                            // hmmm dapat ada ha iba ini na thread kay "jumpy" la gihap
-                            MoveMouse(pts[0]);
+                            int moveX = (int)(dirX * speedFactor);
+                            int moveY = (int)(dirY * speedFactor);
+
+                            // Optional: visual feedback line
+                            Cv2.Line(frame, headCenter, noseTip, Scalar.Green, 2);
+
+                            // Now move the mouse by relative amount
+                            MoveMouse(moveX, moveY);
                         }
                     }
                 }
+
 
                 var wb = frame.ToWriteableBitmap();
 
@@ -108,14 +148,14 @@ namespace ATEDNIULI_NET8.ViewModels
             );
         }
 
-        // temporary move logic la anay ini
-        // add a joystick-like mouse control
-        private void MoveMouse(OpenCvSharp.Point point)
+        // TODO: apply kalman filter to relative incremental movement
+        private void MoveMouse(int x, int y)
         {
-            var smoothPoint = KalmanFilter(point);
-            Debug.WriteLine($"Moving mouse to: {point}");
+            System.Drawing.Point currentPos = System.Windows.Forms.Cursor.Position;
+            int newX = currentPos.X + x;
+            int newY = currentPos.Y + y;
 
-            System.Windows.Forms.Cursor.Position = new System.Drawing.Point(smoothPoint.X, smoothPoint.Y);
+            System.Windows.Forms.Cursor.Position = new System.Drawing.Point(newX, newY);
         }
 
         public void StartCamera()
