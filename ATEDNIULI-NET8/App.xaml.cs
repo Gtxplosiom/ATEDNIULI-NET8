@@ -30,7 +30,8 @@ public partial class App : Application
         // para ma prevent an dadamo na instances hin foating viewmodel ngan multiple subscription for services as well
         // cleaner and safer
         var mainWindowViewModel = new MainWindowViewModel(porcupineService, whisperService);
-        var cameraMouseWindowViewModel = new CameraMouseWindowViewModel(facialLandmarkService);
+        var mouseActionLabelWindowViewModel = new MouseActionLabelWindowViewModel();
+        var cameraMouseWindowViewModel = new CameraMouseWindowViewModel(facialLandmarkService, mouseActionLabelWindowViewModel);
 
         // ig connect an camera mouse window view model to the floating window view model
         // para madali matawag ha commands
@@ -41,6 +42,11 @@ public partial class App : Application
         var floatingWindow = new FloatingWindow()
         {
             DataContext = floatingWindowViewModel
+        };
+
+        var mouseActionLabelWindow = new MouseActionLabelWindow()
+        {
+            DataContext = mouseActionLabelWindowViewModel
         };
 
         var notificationWindow = new NotificationWindow()

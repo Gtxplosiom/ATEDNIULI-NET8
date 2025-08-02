@@ -8,6 +8,9 @@
     <Compile Update="Views\FloatingWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
+    <Compile Update="Views\MouseActionLabelWindow.xaml.cs">
+      <SubType>Code</SubType>
+    </Compile>
     <Compile Update="Views\NotificationWindow.xaml.cs">
       <SubType>Code</SubType>
     </Compile>
