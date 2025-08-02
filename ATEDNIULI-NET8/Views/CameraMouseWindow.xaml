@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:ATEDNIULI_NET8.Views"
         mc:Ignorable="d"
         Title="CameraMouseWindow" Height="400" Width="400"
+        WindowStyle="None"
         Topmost="True">
     <Grid>
         <Image Source="{Binding WebcamFrame}" Stretch="Uniform"/>

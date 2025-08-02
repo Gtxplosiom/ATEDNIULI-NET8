@@ -21,11 +21,20 @@ namespace ATEDNIULI_NET8.ViewModels
 
         private readonly FacialLandmarkService? _facialLandmarkService;
 
-        // variables para kalman filter
-        private OpenCvSharp.KalmanFilter _kalman;
-        private Mat _state;
-        private Mat _measurement;
-        private bool _kalmanInitialized = false;
+        // variables para EMA
+        private double _smoothedX = 0;
+        private double _smoothedY = 0;
+        private const double EmaAlpha = 0.2; // Adjust this value to control smoothing
+
+        private double _speedFactor = 0; // placeholder variable la ini an speed dynamic depende an distance han nose point ha inner circle
+        private int _cursorSensitivity = 15; // mas guti mas sensitive/malaksi, mas dako mas less sensitive
+
+        // timer based mouse movement instead of basing mouse movement on camera frame rate
+        // para mas smooth diri jumpy
+        private Timer? _mouseMoveTimer;
+        private readonly object _lockObject = new object();
+        private int _targetMoveX;
+        private int _targetMoveY;
 
         public CameraMouseWindowViewModel(FacialLandmarkService facialLandmarkService)
         {
@@ -94,27 +103,36 @@ namespace ATEDNIULI_NET8.ViewModels
 
                         if (dist > innerRadius)
                         {
-                            // Normalize direction vector
-                            double length = Math.Max(dist, 1); // avoid divide-by-zero
+                            double length = Math.Max(dist, 1);
                             double dirX = dx / length;
                             double dirY = dy / length;
 
-                            // Speed scaling: small if within outer, large if beyond outer
-                            // co-consider nala ada na fixed speed factor
-                            double speedFactor = dist > outerRadius ? 10 : 4;
+                            _speedFactor = dist / _cursorSensitivity;
 
-                            int moveX = (int)(dirX * speedFactor);
-                            int moveY = (int)(dirY * speedFactor);
+                            // RAW coordinates
+                            var newMoveX = (int)(dirX * _speedFactor);
+                            var newMoveY = (int)(dirY * _speedFactor);
 
-                            // Optional: visual feedback line
+                            // kailangan ini para diri mag katuyaw an loop thread
+                            lock (_lockObject)
+                            {
+                                _targetMoveX = newMoveX;
+                                _targetMoveY = newMoveY;
+                            }
+
                             Cv2.Line(frame, headCenter, noseTip, Scalar.Green, 2);
-
-                            // Now move the mouse by relative amount
-                            MoveMouse(moveX, moveY);
+                        }
+                        else
+                        {
+                            // If the nose is inside the deadzone, set movement to zero
+                            lock (_lockObject)
+                            {
+                                _targetMoveX = 0;
+                                _targetMoveY = 0;
+                            }
                         }
                     }
                 }
-
 
                 var wb = frame.ToWriteableBitmap();
 
@@ -127,42 +145,41 @@ namespace ATEDNIULI_NET8.ViewModels
             }
         }
 
-        // apply kalman filter para ma smoothen an mouse movement
-        // su-sugad hini kay an mouse kailangan ma move bisan guti la an head movement
-        // takay kun sugad kun waray smoothening, magiging jittery an movement kun ha raw coords la
-        private OpenCvSharp.Point KalmanFilter(OpenCvSharp.Point point)
+        private void MoveMouse(object? state)
         {
-            if (!_kalmanInitialized)
-                InitializeKalman();
+            int currentTargetX, currentTargetY;
 
-            var prediction = _kalman.Predict();
+            // thread safety sheesh
+            lock (_lockObject)
+            {
+                currentTargetX = _targetMoveX;
+                currentTargetY = _targetMoveY;
+            }
 
-            _measurement.Set<float>(0, 0, point.X);
-            _measurement.Set<float>(1, 0, point.Y);
+            // EMA application babyyy
+            _smoothedX = (currentTargetX * EmaAlpha) + (_smoothedX * (1 - EmaAlpha));
+            _smoothedY = (currentTargetY * EmaAlpha) + (_smoothedY * (1 - EmaAlpha));
 
-            var estimated = _kalman.Correct(_measurement);
+            int finalMoveX = (int)_smoothedX;
+            int finalMoveY = (int)_smoothedY;
 
-            return new OpenCvSharp.Point(
-                (int)estimated.At<float>(0),
-                (int)estimated.At<float>(1)
-            );
-        }
+            // kun may movement la tikang ha relative position amo an pag execute hini
+            if (Math.Abs(finalMoveX) > 0 || Math.Abs(finalMoveY) > 0)
+            {
+                System.Drawing.Point currentPos = System.Windows.Forms.Cursor.Position;
+                int newX = currentPos.X + finalMoveX;
+                int newY = currentPos.Y + finalMoveY;
 
-        // TODO: apply kalman filter to relative incremental movement
-        private void MoveMouse(int x, int y)
-        {
-            System.Drawing.Point currentPos = System.Windows.Forms.Cursor.Position;
-            int newX = currentPos.X + x;
-            int newY = currentPos.Y + y;
-
-            System.Windows.Forms.Cursor.Position = new System.Drawing.Point(newX, newY);
+                System.Windows.Forms.Cursor.Position = new System.Drawing.Point(newX, newY);
+            }
         }
 
         public void StartCamera()
         {
-            // Change to OpenCvSharp.VideoCapture
             _capture = new VideoCapture(1, VideoCaptureAPIs.DSHOW);
 
+            // para ma de-couple an camera thread han camera framerate
+            // ig separate thread para ma smooth
             _cameraThread = new Thread(CameraLoop)
             {
                 IsBackground = true
@@ -170,6 +187,9 @@ namespace ATEDNIULI_NET8.ViewModels
 
             isRunning = true;
             _cameraThread.Start();
+
+            // amo ini an ma proc han movemouse method
+            _mouseMoveTimer = new Timer(MoveMouse, null, 0, 10);
         }
 
         public void StopCamera()
@@ -177,41 +197,12 @@ namespace ATEDNIULI_NET8.ViewModels
             isRunning = false;
             _cameraThread?.Join();
             _capture?.Dispose();
-        }
 
-        // helper method para ma-initialize an Kalman filter
-        private void InitializeKalman()
-        {
-            _kalman = new KalmanFilter(4, 2);
-            _state = new Mat(4, 1, MatType.CV_32F);
-            _measurement = new Mat(2, 1, MatType.CV_32F);
-
-            var transitionMatrix = new Mat(4, 4, MatType.CV_32F);
-            transitionMatrix.SetArray<float>(new float[]
-            {
-                1, 0, 1, 0,
-                0, 1, 0, 1,
-                0, 0, 1, 0,
-                0, 0, 0, 1
-            });
-            _kalman.TransitionMatrix = transitionMatrix;
-
-            _kalman.MeasurementMatrix = Mat.Eye(2, 4, MatType.CV_32F);
-            _kalman.ProcessNoiseCov = Mat.Eye(4, 4, MatType.CV_32F) * 1e-4;
-            _kalman.MeasurementNoiseCov = Mat.Eye(2, 2, MatType.CV_32F) * 1e-1;
-            _kalman.ErrorCovPost = Mat.Eye(4, 4, MatType.CV_32F);
-
-            _state.Set<float>(0, 0, 0);
-            _state.Set<float>(1, 0, 0);
-            _state.Set<float>(2, 0, 0);
-            _state.Set<float>(3, 0, 0);
-            _kalman.StatePost = _state.Clone();
-
-            _kalmanInitialized = true;
+            _mouseMoveTimer?.Dispose();
+            _mouseMoveTimer = null; // Clear the reference
         }
     }
 }
 
-// TODO: position camera preview on the top right (previous) or ano mas maupay
-// then kailangan i-apply lat an preview or possibly an ui ma move kun an cursor aadto para diri makasalipod ha user
-// apply joystick-like mouse cursor control
+// TODO: pagbutang na hin facial gesture controls para mouse functions
+// tapos fix an direction steering hin cursor while moving kailangan smooth diri la limitado ha north, north-east, east, south-east, south, south-west, west, north-west
