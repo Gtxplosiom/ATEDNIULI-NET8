@@ -7,8 +7,16 @@ namespace ATEDNIULI_NET8.Views
         public MouseActionLabelWindow()
         {
             InitializeComponent();
+            IsVisibleChanged += MouseActionLabelWindow_IsVisibleChanged;
+        }
 
-            PositionNearCursor();
+        // Mag update an position everytime an window ma chage an visibility
+        private void MouseActionLabelWindow_IsVisibleChanged(object sender, DependencyPropertyChangedEventArgs e)
+        {
+            if (IsVisible)
+            {
+                PositionNearCursor();
+            }
         }
 
         private void PositionNearCursor()

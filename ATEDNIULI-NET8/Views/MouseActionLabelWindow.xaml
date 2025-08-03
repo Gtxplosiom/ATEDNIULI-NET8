@@ -6,6 +6,7 @@
         xmlns:local="clr-namespace:ATEDNIULI_NET8.Views"
         mc:Ignorable="d"
         Title="MouseActionLabelWindow" Height="40" Width="150"
+        Left="{Binding LeftState}" Top="{Binding TopState}"
         WindowStyle="None"
         AllowsTransparency="True"
         Background="Transparent"

@@ -21,14 +21,12 @@ namespace ATEDNIULI_NET8.ViewModels
         // property variable
         private BitmapSource? _webcamFrame;
 
-        private readonly FacialLandmarkService? _facialLandmarkService;
-
         // sirkol radii
         private readonly int _innerCircleRadius = 20;
         private readonly int _outerCircleRadius = 60;
 
         // thresholds
-        private readonly int _smileThreshold = 100;
+        private readonly double _smileThreshold = 1.9;
 
         // variables para EMA
         private double _smoothedX = 0;
@@ -45,6 +43,7 @@ namespace ATEDNIULI_NET8.ViewModels
         private int _targetMoveX;
         private int _targetMoveY;
 
+
         // mouse function control baryabols
         private Timer? _smileTimer;
         private SmileMouseState? _smileState;
@@ -54,6 +53,10 @@ namespace ATEDNIULI_NET8.ViewModels
 
         // Instances
         private MouseActionLabelWindowViewModel? _mouseActionLabelWindowViewModel;
+        private readonly FacialLandmarkService? _facialLandmarkService;
+
+        // Others
+        System.Drawing.Point _currentCursorPos = System.Windows.Forms.Cursor.Position;
 
         public CameraMouseWindowViewModel(FacialLandmarkService facialLandmarkService, MouseActionLabelWindowViewModel mouseActionLabelWindowViewModel)
         {
@@ -122,10 +125,17 @@ namespace ATEDNIULI_NET8.ViewModels
                         int mouthLeftRightVecX = mouthRight.X - mouthLeft.X;
                         int mouthLeftRightVecY = mouthRight.Y - mouthLeft.Y;
 
-                        // gamiton ini para masabtan kun na smile
-                        // TODO: make this more robust/dynamic para no matter bisan ano an size hin face, or bisan dumaop ngan hirayo
-                        // ma normalize la gihap an distance
-                        double distLeftRight = Math.Sqrt(mouthLeftRightVecX * mouthLeftRightVecX + mouthLeftRightVecY * mouthLeftRightVecY);
+                        // Eye points nearest to nose bridge
+                        OpenCvSharp.Point eyeLeft = pts[39];
+                        OpenCvSharp.Point eyeRight = pts[42];
+                        double eyeDistance = Math.Sqrt(Math.Pow(eyeRight.X - eyeLeft.X, 2) + Math.Pow(eyeRight.Y - eyeLeft.Y, 2));
+
+                        // An distance between leftmost and rightmost mouth points
+                        double distLeftRight = Math.Sqrt(Math.Pow(mouthRight.X - mouthLeft.X, 2) + Math.Pow(mouthRight.Y - mouthLeft.Y, 2));
+
+                        // Normalized mouth distance width reagardless of face size
+                        double normalizedMouthWidth = distLeftRight / eyeDistance;
+                        Debug.WriteLine($"Normalized Mouth Width: {normalizedMouthWidth}");
 
                         // Calculate vector from head center to nose tip
                         int noseHeadVecX = noseTip.X - headCenter.X;
@@ -162,7 +172,7 @@ namespace ATEDNIULI_NET8.ViewModels
                         {
                             _noseInsideInnerCircle = true;
 
-                            IsSmiling(distLeftRight);
+                            IsSmiling(normalizedMouthWidth);
 
                             // If the nose is inside the inner sirkol, set movement to zero
                             lock (_lockObject)
@@ -206,9 +216,9 @@ namespace ATEDNIULI_NET8.ViewModels
             // kun may movement la tikang ha relative position amo an pag execute hini
             if (Math.Abs(finalMoveX) > 0 || Math.Abs(finalMoveY) > 0)
             {
-                System.Drawing.Point currentPos = System.Windows.Forms.Cursor.Position;
-                int newX = currentPos.X + finalMoveX;
-                int newY = currentPos.Y + finalMoveY;
+                _currentCursorPos = System.Windows.Forms.Cursor.Position;
+                int newX = _currentCursorPos.X + finalMoveX;
+                int newY = _currentCursorPos.Y + finalMoveY;
 
                 System.Windows.Forms.Cursor.Position = new System.Drawing.Point(newX, newY);
             }
