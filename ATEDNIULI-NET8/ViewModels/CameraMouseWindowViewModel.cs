@@ -1,11 +1,8 @@
-﻿using ATEDNIULI_NET8.Services;
-using ATEDNIULI_NET8.Views;
-using Microsoft.VisualBasic.ApplicationServices;
-using OpenCvSharp;
+﻿using OpenCvSharp;
 using OpenCvSharp.WpfExtensions;
 using System.Diagnostics;
+using System.Runtime.InteropServices;
 using System.Windows;
-using System.Windows.Input;
 using System.Windows.Media.Imaging;
 
 namespace ATEDNIULI_NET8.ViewModels
@@ -26,22 +23,22 @@ namespace ATEDNIULI_NET8.ViewModels
         private readonly int _outerCircleRadius = 60;
 
         // thresholds
-        private readonly double _smileThreshold = 1.9;
+        private readonly double _smileThreshold = 1.8;
 
         // variables para EMA
-        private double _smoothedX = 0;
-        private double _smoothedY = 0;
+        private double _smoothedX = 0.0;
+        private double _smoothedY = 0.0;
         private readonly double _emaAlpha = 0.2; // Adjust this value to control smoothing
 
-        private double _speedFactor = 0; // placeholder variable la ini an speed dynamic depende an distance han nose point ha inner circle
+        private double _speedFactor = 0.0; // placeholder variable la ini an speed dynamic depende an distance han nose point ha inner circle
         private int _cursorSensitivity = 15; // mas guti mas sensitive/malaksi, mas dako mas less sensitive
 
         // timer based mouse movement instead of basing mouse movement on camera frame rate
         // para mas smooth diri jumpy
         private Timer? _mouseMoveTimer;
         private readonly object _lockObject = new object(); // thread lock sheesh para safe kuno
-        private int _targetMoveX;
-        private int _targetMoveY;
+        private double _targetMoveX;
+        private double _targetMoveY;
 
 
         // mouse function control baryabols
@@ -156,8 +153,8 @@ namespace ATEDNIULI_NET8.ViewModels
                             _speedFactor = distNoseHead / _cursorSensitivity;
 
                             // RAAAW coordinates
-                            var newMoveX = (int)(dirX * _speedFactor);
-                            var newMoveY = (int)(dirY * _speedFactor);
+                            var newMoveX = dirX * _speedFactor;
+                            var newMoveY = dirY * _speedFactor;
 
                             // kailangan ini para diri mag katuyaw an loop thread
                             lock (_lockObject)
@@ -177,8 +174,8 @@ namespace ATEDNIULI_NET8.ViewModels
                             // If the nose is inside the inner sirkol, set movement to zero
                             lock (_lockObject)
                             {
-                                _targetMoveX = 0;
-                                _targetMoveY = 0;
+                                _targetMoveX = 0.0;
+                                _targetMoveY = 0.0;
                             }
                         }
                     }
@@ -197,7 +194,7 @@ namespace ATEDNIULI_NET8.ViewModels
 
         private void MoveMouse(object? state)
         {
-            int currentTargetX, currentTargetY;
+            double currentTargetX, currentTargetY;
 
             // thread safety sheesh
             lock (_lockObject)
@@ -297,22 +294,41 @@ namespace ATEDNIULI_NET8.ViewModels
         // Execute mouse function method yeah
         private void ExecuteMouseFunction(string action)
         {
+            uint x = (uint)_currentCursorPos.X;
+            uint y = (uint)_currentCursorPos.Y;
+
             switch (action)
             {
                 case "left-click":
                     Debug.WriteLine("Executing left click");
+
+                    MouseSimulator.mouse_event(MouseSimulator.MOUSEEVENTF_LEFTDOWN | MouseSimulator.MOUSEEVENTF_LEFTUP, x, y, 0, 0);
+
                     break;
                 case "double-click":
                     Debug.WriteLine("Executing double click");
+
+                    MouseSimulator.mouse_event(MouseSimulator.MOUSEEVENTF_LEFTDOWN | MouseSimulator.MOUSEEVENTF_LEFTUP, x, y, 0, 0);
+                    MouseSimulator.mouse_event(MouseSimulator.MOUSEEVENTF_LEFTDOWN | MouseSimulator.MOUSEEVENTF_LEFTUP, x, y, 0, 0);
+
                     break;
                 case "right-click":
                     Debug.WriteLine("Executing right click");
+
+                    MouseSimulator.mouse_event(MouseSimulator.MOUSEEVENTF_RIGHTDOWN | MouseSimulator.MOUSEEVENTF_RIGHTUP, x, y, 0, 0);
+
                     break;
                 case "hold":
                     Debug.WriteLine("Holding mouse button down");
+
+                    MouseSimulator.mouse_event(MouseSimulator.MOUSEEVENTF_LEFTDOWN, x, y, 0, 0);
+
                     break;
                 case "release":
                     Debug.WriteLine("Releasing mouse button");
+
+                    MouseSimulator.mouse_event(MouseSimulator.MOUSEEVENTF_LEFTUP, x, y, 0, 0);
+
                     break;
             }
 
@@ -353,9 +369,22 @@ namespace ATEDNIULI_NET8.ViewModels
     {
         public int Counter { get; set; } = 0;
     }
+
+    // Mouse simulator class para pag simulate hin mga mouse events
+    public class MouseSimulator
+    {
+        [DllImport("user32.dll", CharSet = CharSet.Auto, CallingConvention = CallingConvention.StdCall)]
+        public static extern void mouse_event(uint dwFlags, uint dx, uint dy, uint cButtons, uint dwExtraInfo);
+
+        public const uint MOUSEEVENTF_LEFTDOWN = 0x02;
+        public const uint MOUSEEVENTF_LEFTUP = 0x04;
+        public const uint MOUSEEVENTF_RIGHTDOWN = 0x08;
+        public const uint MOUSEEVENTF_RIGHTUP = 0x10;
+    }
 }
 
-// TODO: fix an direction steering hin cursor while moving kailangan smooth diri la limitado ha north, north-east, east, south-east, south, south-west, west, north-west
-// ngan implement na an mouse function mismo
-// nganin make an distance left mouth to right mouth more robust/dynamic para no matter bisan ano an size hin face, or bisan dumaop ngan hirayo
-// ma normalize la gihap an distance
+// TODO: i-consider na an landmark detection ha iba lat na thread para mas smooth an camera framerate. If possible la ngan diri ma compromise hinduro an performance
+// ngan kailangan usa la an na de-detect na face
+// ngan check if may mahihimo para han responsiveness han pag tikang ngan stop han mouse movement, kay may problema kun may mga guti na icons na kailangan ig click
+// makuri ig point an cursor mismo didto kailangan precise control
+// ngan last kun possible ig visualize lat an direction tikain an cursor hirani ha mouse cursor
