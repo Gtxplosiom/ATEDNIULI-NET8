@@ -169,6 +169,10 @@ namespace ATEDNIULI_NET8.ViewModels
             {
                 ToggleCameraMouse?.Execute(false);
             }
+            else if (command == "ShowItems")
+            {
+                Debug.WriteLine("Showing clickable items on screen");
+            }
         }
     }
 }

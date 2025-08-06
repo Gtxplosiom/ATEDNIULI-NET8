@@ -13,7 +13,7 @@ public partial class App : Application
     // model paths
     private const string WhisperModelPath = "Assets/Models/ggml-base.en.bin";
     private const string SileroVADModelPath = "Assets/Models/silero_vad.onnx";
-    private const string IntentModelPath = "Assets/Models/intent-model.zip";
+    private const string IntentModelPath = "Assets/Models/intent-model-v1.1.zip";
     private const string ShapePredictorModelPath = "Assets/Models/shape_predictor_68_face_landmarks.dat";
 
     protected override void OnStartup(StartupEventArgs e)

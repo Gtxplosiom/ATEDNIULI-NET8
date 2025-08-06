@@ -25,6 +25,9 @@
       <Content Include="Assets\Icons\typing.png">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
+      <Content Include="Assets\Models\intent-model-v1.1.zip">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
       <Content Include="Assets\Models\intent-model.zip">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
