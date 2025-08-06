@@ -28,7 +28,10 @@ namespace ATEDNIULI_NET8.ViewModels
         private readonly TranscriptionModel _transcriptionModel = new();
 
         // Commands
+        // an floating window VM naagi an mga commands kay i found it na more accessible an mga variables dinhi
         public ICommand? ToggleCameraMouse { get; }
+        // TODO: Implement this
+        public ICommand? ShowItems { get; }
 
         public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, IntentService? intentService, CameraMouseWindowViewModel cameraMouseWindowViewModel)
         {
@@ -37,6 +40,7 @@ namespace ATEDNIULI_NET8.ViewModels
             _intentService = intentService;
 
             // connect camera mouse window view model
+            // an mga events na gin hook dinhi pag handle la hin ui states
             _cameraMouseWindowViewModel = cameraMouseWindowViewModel;
 
             if (_porcupineWakeWordDetector != null) _porcupineWakeWordDetector.WakeWordDetected += OnWakeWordDetected;

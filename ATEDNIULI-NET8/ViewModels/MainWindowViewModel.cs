@@ -14,6 +14,8 @@ namespace ATEDNIULI_NET8.ViewModels
         private ImageSource? _listeningIcon;
 
         // Adjust this so models can be dynamically switched
+        // an pag hook hin events dinhi amo gud an na handle han mga life cycle hin mga voice services
+        // note to self: mainwindowVM an core an handling tanan
         public MainWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService)
         {
             _porcupineWakeWordDetector = wakeWordDetector;
@@ -29,7 +31,7 @@ namespace ATEDNIULI_NET8.ViewModels
             });
         }
 
-        // Properties pra binding
+        // Properties para binding
         public ImageSource? ListeningIcon
         {
             get => _listeningIcon;
@@ -40,6 +42,8 @@ namespace ATEDNIULI_NET8.ViewModels
             }
         }
 
+        // note to self: this is the one that handles the activation of whisper transcription
+        // an mainwindowVM an nag hahandle talaga hin pag start nfan end hin mga voice services
         public void OnWakeWordDetected()
         {
             var bi = new BitmapImage();
@@ -59,7 +63,6 @@ namespace ATEDNIULI_NET8.ViewModels
             _whisperService?.RecordAudioInput();
         }
 
-        // fix ths it makes the icon change back instantly
         public void OnDoneTranscription()
         {
             var bi = new BitmapImage();
@@ -74,7 +77,7 @@ namespace ATEDNIULI_NET8.ViewModels
                 ListeningIcon = bi;
             });
 
-            // pause the wake word for performance purposes
+            // resume an wake word detection kun matapos na an whisper transcription
             _porcupineWakeWordDetector?.ResumeWakeWordDetection();
         }
     }

@@ -224,3 +224,7 @@ namespace ATEDNIULI_NET8.Services
         }
     }
 }
+
+// TODO: apply typing logic
+// add InitiateTyping in the intent model
+// 
