@@ -13,7 +13,7 @@ public partial class App : Application
     // model paths
     private const string WhisperModelPath = "Assets/Models/ggml-base.en.bin";
     private const string SileroVADModelPath = "Assets/Models/silero_vad.onnx";
-    private const string IntentModelPath = "Assets/Models/intent-model-v1.1.zip";
+    private const string IntentModelPath = "Assets/Models/intent-model-v1.2.zip";
     private const string ShapePredictorModelPath = "Assets/Models/shape_predictor_68_face_landmarks.dat";
 
     protected override void OnStartup(StartupEventArgs e)
@@ -26,17 +26,19 @@ public partial class App : Application
         var whisperService = new WhisperService(WhisperModelPath, SileroVADModelPath);
         var intentService = new IntentService(IntentModelPath);
         var facialLandmarkService = new FacialLandmarkService(ShapePredictorModelPath);
+        var uiAutomationService = new UIAutomationService();
 
         // para ma prevent an dadamo na instances hin foating viewmodel ngan multiple subscription for services as well
         // cleaner and safer
         var mainWindowViewModel = new MainWindowViewModel(porcupineService, whisperService);
         var mouseActionLabelWindowViewModel = new MouseActionLabelWindowViewModel();
         var cameraMouseWindowViewModel = new CameraMouseWindowViewModel(facialLandmarkService, mouseActionLabelWindowViewModel);
+        var tagOverlayWindowViewModel = new TagOverlayWindowViewModel();
 
         // ig connect an camera mouse window view model to the floating window view model
         // para madali matawag ha commands
         // TODO: make this cleaner?? for now adi la anay
-        var floatingWindowViewModel = new FloatingWindowViewModel(porcupineService, whisperService, intentService, cameraMouseWindowViewModel);
+        var floatingWindowViewModel = new FloatingWindowViewModel(porcupineService, whisperService, intentService, uiAutomationService,cameraMouseWindowViewModel, tagOverlayWindowViewModel);
 
         // Connect datacontext para bindings
         var floatingWindow = new FloatingWindow()

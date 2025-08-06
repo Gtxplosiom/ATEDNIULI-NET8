@@ -13,16 +13,22 @@ namespace ATEDNIULI_NET8.ViewModels
         private readonly PorcupineService? _porcupineWakeWordDetector;
         private readonly WhisperService? _whisperService;
         private readonly IntentService? _intentService;
+        private readonly UIAutomationService? _uiAutomationService;
 
         private readonly Vector2 _screenDimentions;
         private readonly int _taskBarHeight;
 
+        // view model instances para commands that deals with another window
         private CameraMouseWindowViewModel? _cameraMouseWindowViewModel;
+        private TagOverlayWindowViewModel? _tagOverlayWindowViewModel;
 
         // floating window properties
         private Visibility _visibilityState;
         private int _leftState;
         private int _topState;
+
+        // Flags
+        private bool _itemsShowed = false;  // magagamitan ini para command kun ano an i cli-click
 
         // Models
         private readonly TranscriptionModel _transcriptionModel = new();
@@ -31,17 +37,19 @@ namespace ATEDNIULI_NET8.ViewModels
         // an floating window VM naagi an mga commands kay i found it na more accessible an mga variables dinhi
         public ICommand? ToggleCameraMouse { get; }
         // TODO: Implement this
-        public ICommand? ShowItems { get; }
+        public ICommand? ShowItemsCommand { get; }
 
-        public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, IntentService? intentService, CameraMouseWindowViewModel cameraMouseWindowViewModel)
+        public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, IntentService? intentService, UIAutomationService uiAutomationService, CameraMouseWindowViewModel cameraMouseWindowViewModel, TagOverlayWindowViewModel tagOverlayWindowViewModel)
         {
             _porcupineWakeWordDetector = wakeWordDetector;
             _whisperService = whisperService;
             _intentService = intentService;
+            _uiAutomationService = uiAutomationService;
 
             // connect camera mouse window view model
             // an mga events na gin hook dinhi pag handle la hin ui states
             _cameraMouseWindowViewModel = cameraMouseWindowViewModel;
+            _tagOverlayWindowViewModel = tagOverlayWindowViewModel;
 
             if (_porcupineWakeWordDetector != null) _porcupineWakeWordDetector.WakeWordDetected += OnWakeWordDetected;
 
@@ -68,6 +76,7 @@ namespace ATEDNIULI_NET8.ViewModels
 
             // Initialize commands
             ToggleCameraMouse = new ToggleCameraMouseCommand(_cameraMouseWindowViewModel);
+            ShowItemsCommand = new ShowItemsCommand(_tagOverlayWindowViewModel, _uiAutomationService);
         }
 
         // Properties
@@ -161,6 +170,7 @@ namespace ATEDNIULI_NET8.ViewModels
             CommandHandler(intent);
         }
 
+        // make this prettier, prefer to not use if else statement para kada usa na intent kay maraot lol
         private void CommandHandler(string? command)
         {
             // TODO: ig change ini para an command toggle or mas better ada kun an cameramousewindowviewmodel instance ig instance nala didi
@@ -175,11 +185,22 @@ namespace ATEDNIULI_NET8.ViewModels
             }
             else if (command == "ShowItems")
             {
-                Debug.WriteLine("Showing clickable items on screen");
+                ShowItemsCommand?.Execute(true);
+                _itemsShowed = true;
+            }
+            else if (command == "HideItems")
+            {
+                ShowItemsCommand?.Execute(false);
+                _itemsShowed = false;
             }
         }
     }
 }
 
 // TODO: Do something about the magic numbers
-// TODO: maybe floating window just serves as a state for transcription, or for typing
+// maybe floating window just serves as a state for transcription, or for typing
+
+// TODO: implement an auto remove function that will monitor window state so if anything changed in the screen while tag is present
+// this ShowItemsCommand?.Execute(false); will execute
+// be it mouse movement, window appearing dissapearing, and window moving
+// implement smart way of clicking and don't rely on intents i think. kay uusa-usahon an every number kun sugad lol

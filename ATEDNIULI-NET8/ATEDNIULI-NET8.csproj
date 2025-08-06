@@ -10,6 +10,10 @@
     </PropertyGroup>
 
     <ItemGroup>
+      <None Remove="Assets\Models\intent-model-v1.2.zip" />
+    </ItemGroup>
+
+    <ItemGroup>
       <Content Include="Assets\Icons\camera-mouse-preview.png">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
@@ -26,6 +30,9 @@
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
       <Content Include="Assets\Models\intent-model-v1.1.zip">
+        <CopyToOutputDirectory>Always</CopyToOutputDirectory>
+      </Content>
+      <Content Include="Assets\Models\intent-model-v1.2.zip">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
       <Content Include="Assets\Models\intent-model.zip">
