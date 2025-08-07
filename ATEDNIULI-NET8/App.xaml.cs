@@ -2,6 +2,7 @@
 using ATEDNIULI_NET8.ViewModels;
 using ATEDNIULI_NET8.Services;
 using ATEDNIULI_NET8.Views;
+using VoskTest;
 
 namespace ATEDNIULI_NET8;
 
@@ -12,6 +13,7 @@ public partial class App : Application
 
     // model paths
     private const string WhisperModelPath = "Assets/Models/ggml-base.en.bin";
+    private const string VoskModelPath = "Assets/Models/VoskModels/vosk-model-small-en-us-0.15";
     private const string SileroVADModelPath = "Assets/Models/silero_vad.onnx";
     private const string IntentModelPath = "Assets/Models/intent-model-v1.2.zip";
     private const string ShapePredictorModelPath = "Assets/Models/shape_predictor_68_face_landmarks.dat";
@@ -24,13 +26,14 @@ public partial class App : Application
         // by making it the datacontext han mainwindow
         var porcupineService = new PorcupineService(AccessKey);
         var whisperService = new WhisperService(WhisperModelPath, SileroVADModelPath);
+        var voskService = new VoskService(VoskModelPath);
         var intentService = new IntentService(IntentModelPath);
         var facialLandmarkService = new FacialLandmarkService(ShapePredictorModelPath);
         var uiAutomationService = new UIAutomationService();
 
         // para ma prevent an dadamo na instances hin foating viewmodel ngan multiple subscription for services as well
         // cleaner and safer
-        var mainWindowViewModel = new MainWindowViewModel(porcupineService, whisperService);
+        var mainWindowViewModel = new MainWindowViewModel(porcupineService, whisperService, voskService);
         var mouseActionLabelWindowViewModel = new MouseActionLabelWindowViewModel();
         var cameraMouseWindowViewModel = new CameraMouseWindowViewModel(facialLandmarkService, mouseActionLabelWindowViewModel);
         var tagOverlayWindowViewModel = new TagOverlayWindowViewModel();
@@ -38,7 +41,7 @@ public partial class App : Application
         // ig connect an camera mouse window view model to the floating window view model
         // para madali matawag ha commands
         // TODO: make this cleaner?? for now adi la anay
-        var floatingWindowViewModel = new FloatingWindowViewModel(porcupineService, whisperService, intentService, uiAutomationService,cameraMouseWindowViewModel, tagOverlayWindowViewModel);
+        var floatingWindowViewModel = new FloatingWindowViewModel(porcupineService, whisperService, voskService, intentService, uiAutomationService,cameraMouseWindowViewModel, tagOverlayWindowViewModel);
 
         // Connect datacontext para bindings
         var floatingWindow = new FloatingWindow()

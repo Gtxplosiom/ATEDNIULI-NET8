@@ -108,6 +108,7 @@ namespace ATEDNIULI_NET8.Services
                     {
                         short[] frame = _buffer.Take(_frameLength).ToArray();
                         _buffer.RemoveRange(0, _frameLength);
+
                         int result = _porcupine.Process(frame);
 
                         if (result >= 0)

@@ -5,13 +5,15 @@ using System.Numerics;
 using System.Windows.Input;
 using ATEDNIULI_NET8.ViewModels.Commands;
 using System.Diagnostics;
+using VoskTest;
 
 namespace ATEDNIULI_NET8.ViewModels
 {
     public class FloatingWindowViewModel : ViewModelBase
     {
         private readonly PorcupineService? _porcupineWakeWordDetector;
-        private readonly WhisperService? _whisperService;
+        private readonly WhisperService? _whisperService;   // keep here for typing i think
+        private readonly VoskService? _voskService;
         private readonly IntentService? _intentService;
         private readonly UIAutomationService? _uiAutomationService;
 
@@ -39,10 +41,12 @@ namespace ATEDNIULI_NET8.ViewModels
         // TODO: Implement this
         public ICommand? ShowItemsCommand { get; }
 
-        public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, IntentService? intentService, UIAutomationService uiAutomationService, CameraMouseWindowViewModel cameraMouseWindowViewModel, TagOverlayWindowViewModel tagOverlayWindowViewModel)
+        // keep la an whisper na naka pass banign gamiton ha typing or searching
+        public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, VoskService? voskService, IntentService? intentService, UIAutomationService uiAutomationService, CameraMouseWindowViewModel cameraMouseWindowViewModel, TagOverlayWindowViewModel tagOverlayWindowViewModel)
         {
             _porcupineWakeWordDetector = wakeWordDetector;
             _whisperService = whisperService;
+            _voskService = voskService;
             _intentService = intentService;
             _uiAutomationService = uiAutomationService;
 
@@ -53,11 +57,10 @@ namespace ATEDNIULI_NET8.ViewModels
 
             if (_porcupineWakeWordDetector != null) _porcupineWakeWordDetector.WakeWordDetected += OnWakeWordDetected;
 
-            if (_whisperService != null)
+            if (_voskService != null)
             {
-                _whisperService.ProcessingTranscription += OnProcessingTranscription;
-                _whisperService.DoneProcessing += OnDoneProcessing;
-                _whisperService.TranscriptionResultReady += OnTranscriptionResultReady;
+                _voskService.DoneTranscription += OnDoneTranscription;
+                _voskService.TranscriptionResultReady += OnTranscriptionResultReady;
             }
 
             _screenDimentions = new Vector2(
@@ -141,15 +144,7 @@ namespace ATEDNIULI_NET8.ViewModels
             });
         }
 
-        private void OnProcessingTranscription()
-        {
-            Application.Current.Dispatcher.Invoke(() =>
-            {
-                TranscriptionText = "Processing...";
-            });
-        }
-
-        private void OnDoneProcessing()
+        private void OnDoneTranscription()
         {
             Application.Current.Dispatcher.Invoke(() =>
             {
@@ -204,3 +199,5 @@ namespace ATEDNIULI_NET8.ViewModels
 // this ShowItemsCommand?.Execute(false); will execute
 // be it mouse movement, window appearing dissapearing, and window moving
 // implement smart way of clicking and don't rely on intents i think. kay uusa-usahon an every number kun sugad lol
+
+// TODO: cleanup codebase, after the refatoring from using whisper to vosk code is messed up i think

@@ -2,6 +2,7 @@
 using System.Windows.Media;
 using System.Windows.Media.Imaging;
 using System.Windows;
+using VoskTest;
 
 namespace ATEDNIULI_NET8.ViewModels
 {
@@ -9,20 +10,20 @@ namespace ATEDNIULI_NET8.ViewModels
     {
         // Wake word detection services
         private readonly PorcupineService? _porcupineWakeWordDetector;
-        private readonly WhisperService? _whisperService;
+        private readonly VoskService? _voskService;
 
         private ImageSource? _listeningIcon;
 
         // Adjust this so models can be dynamically switched
         // an pag hook hin events dinhi amo gud an na handle han mga life cycle hin mga voice services
         // note to self: mainwindowVM an core an handling tanan
-        public MainWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService)
+        public MainWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, VoskService? voskService)
         {
             _porcupineWakeWordDetector = wakeWordDetector;
-            _whisperService = whisperService;
+            _voskService = voskService;
 
             if (_porcupineWakeWordDetector != null) _porcupineWakeWordDetector.WakeWordDetected += OnWakeWordDetected;
-            if (_whisperService != null) _whisperService.DoneTranscription += OnDoneTranscription;
+            if (_voskService != null) _voskService.DoneTranscription += OnDoneTranscription;
 
             // Default icon niya
             Application.Current.Dispatcher.Invoke(() =>
@@ -60,7 +61,7 @@ namespace ATEDNIULI_NET8.ViewModels
 
             // pause the wake word for performance purposes
             _porcupineWakeWordDetector?.PauseWakeWordDetection();
-            _whisperService?.RecordAudioInput();
+            _voskService?.StartRecording();
         }
 
         public void OnDoneTranscription()

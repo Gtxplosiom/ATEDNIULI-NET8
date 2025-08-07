@@ -10,10 +10,6 @@
     </PropertyGroup>
 
     <ItemGroup>
-      <None Remove="Assets\Models\intent-model-v1.2.zip" />
-    </ItemGroup>
-
-    <ItemGroup>
       <Content Include="Assets\Icons\camera-mouse-preview.png">
         <CopyToOutputDirectory>Always</CopyToOutputDirectory>
       </Content>
@@ -66,8 +62,18 @@
       <PackageReference Include="OpenCvSharp4.runtime.win" Version="4.11.0.20250507" />
       <PackageReference Include="OpenCvSharp4.WpfExtensions" Version="4.11.0.20250507" />
       <PackageReference Include="Porcupine" Version="3.0.10" />
+      <PackageReference Include="Vosk" Version="0.3.38" />
       <PackageReference Include="Whisper.net" Version="1.8.1" />
       <PackageReference Include="Whisper.net.Runtime" Version="1.8.1" />
     </ItemGroup>
 
+	<ItemGroup>
+		<Folder Include="Assets\Models\VoskModels\" />
+	</ItemGroup>
+
+	<ItemGroup>
+		<None Include="Assets\Models\VoskModels\**\*">
+			<CopyToOutputDirectory>PreserveNewest</CopyToOutputDirectory>
+		</None>
+	</ItemGroup>
 </Project>
