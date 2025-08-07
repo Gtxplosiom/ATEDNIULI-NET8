@@ -13,6 +13,7 @@
         Topmost="True"
         ShowInTaskbar="False"
         ResizeMode="NoResize"
+        Focusable="False"
         Visibility="{Binding VisibilityState}">
     <Border Background="#DD333333" CornerRadius="8" Padding="10">
         <TextBlock x:Name="MouseActionText" 

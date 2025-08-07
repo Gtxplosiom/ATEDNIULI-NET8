@@ -8,7 +8,9 @@
         Title="MainWindow" Height="250" Width="70"
         WindowStyle="None"
         AllowsTransparency="True"
-        Topmost="True">
+        Topmost="True"
+        ShowInTaskbar="False"
+        Focusable="False">
     <Grid>
         <Grid.RowDefinitions>
             <RowDefinition Height="33*"/>

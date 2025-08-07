@@ -8,7 +8,9 @@
         Title="NotificationWindow" Height="25" Width="200"
         WindowStyle="None"
         AllowsTransparency="True"
-        Topmost="True">
+        Topmost="True"
+        ShowInTaskbar="False"
+        Focusable="False">
     <Grid Background="Black">
         <TextBlock Text="{Binding NotificationText}"
                    HorizontalAlignment="Center"

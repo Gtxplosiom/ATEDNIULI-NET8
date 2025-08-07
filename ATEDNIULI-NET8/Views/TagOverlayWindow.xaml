@@ -4,15 +4,20 @@
         xmlns:d="http://schemas.microsoft.com/expression/blend/2008"
         xmlns:mc="http://schemas.openxmlformats.org/markup-compatibility/2006"
         xmlns:local="clr-namespace:ATEDNIULI_NET8.Views"
+        xmlns:viewmodels="clr-namespace:ATEDNIULI_NET8.ViewModels"
+        xmlns:services="clr-namespace:ATEDNIULI_NET8.Services"
         mc:Ignorable="d"
-        Title="TagOverlayWindow"
-        Height="450" Width="800"
-        WindowStyle="None"
-        WindowStartupLocation="Manual"
-        AllowsTransparency="True"
-        ResizeMode="NoResize"
-        Topmost="True"
-        Background="Transparent">
+        Title="TagOverlayWindow" Height="450" Width="800"
+        WindowStyle="None" WindowStartupLocation="Manual" AllowsTransparency="True"
+        ResizeMode="NoResize" Topmost="True" Background="Transparent"
+        ShowInTaskbar="False" Focusable="False">
+
+    <Window.Resources>
+        <services:TagGeometryConverterService x:Key="TagGeometryConverterService"/>
+    </Window.Resources>
+
+    <!-- Let AI cook -->
+    <!-- Essentially controls the tag appearance and its bindings here -->
     <Canvas>
         <ItemsControl ItemsSource="{Binding Tags}">
             <ItemsControl.ItemsPanel>
@@ -20,19 +25,45 @@
                     <Canvas IsItemsHost="True"/>
                 </ItemsPanelTemplate>
             </ItemsControl.ItemsPanel>
+
             <ItemsControl.ItemContainerStyle>
                 <Style TargetType="ContentPresenter">
-                    <Setter Property="Canvas.Left" Value="{Binding X}" />
-                    <Setter Property="Canvas.Top" Value="{Binding Y}" />
+                    <Setter Property="Canvas.Left" Value="{Binding TagX}" />
+                    <Setter Property="Canvas.Top" Value="{Binding TagY}" />
                 </Style>
             </ItemsControl.ItemContainerStyle>
+
             <ItemsControl.ItemTemplate>
-                <DataTemplate>
-                    <Label Content="{Binding TagText}"
-                           Background="{Binding Background}"
-                           Foreground="{Binding Foreground}"
-                           Padding="4"
-                           Margin="0"/>
+                <DataTemplate DataType="{x:Type viewmodels:TagOverlayWindowViewModel}">
+                    <Grid x:Name="TagGrid">
+
+                        <Path Fill="{Binding Background}" StrokeThickness="2" Stroke="{Binding Stroke}">
+                            <Path.Data>
+                                <Binding Path="Direction" Converter="{StaticResource TagGeometryConverterService}"/>
+                            </Path.Data>
+                        </Path>
+
+                        <TextBlock Text="{Binding TagText}"
+                                   Foreground="{Binding Foreground}"
+                                   HorizontalAlignment="Center"
+                                   VerticalAlignment="Center"
+                                   FontSize="14"
+                                   FontWeight="Bold">
+                            <TextBlock.Style>
+                                <Style TargetType="TextBlock">
+                                    <Setter Property="Padding" Value="10,4"/>
+                                    <Style.Triggers>
+                                        <DataTrigger Binding="{Binding Direction}" Value="Left">
+                                            <Setter Property="Padding" Value="15,4,5,4"/>
+                                        </DataTrigger>
+                                        <DataTrigger Binding="{Binding Direction}" Value="Right">
+                                            <Setter Property="Padding" Value="5,4,15,4"/>
+                                        </DataTrigger>
+                                    </Style.Triggers>
+                                </Style>
+                            </TextBlock.Style>
+                        </TextBlock>
+                    </Grid>
                 </DataTemplate>
             </ItemsControl.ItemTemplate>
         </ItemsControl>

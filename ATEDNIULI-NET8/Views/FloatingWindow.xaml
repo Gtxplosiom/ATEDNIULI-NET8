@@ -9,7 +9,9 @@
         Left="{Binding LeftState}" Top="{Binding TopState}"
         Visibility="{Binding VisibilityState}"
         WindowStyle="None"
-        Topmost="True">
+        Topmost="True"
+        ShowInTaskbar="False"
+        Focusable="False">
     <Border CornerRadius="8">
         <TextBlock Text="{Binding TranscriptionText}"
                    HorizontalAlignment="Center"
