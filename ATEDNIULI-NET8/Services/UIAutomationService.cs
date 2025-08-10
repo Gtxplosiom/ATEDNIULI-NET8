@@ -5,9 +5,13 @@ namespace ATEDNIULI_NET8.Services
 {
     public class UIAutomationService
     {
+        // exposed para ma access han pag click mismo ha coordinates
+        public List<Point> clickableItems;
+
         public List<Point> GetClickableItems()
         {
-            var clickableItems = new List<Point>();
+            // Evrytime na i ca-call ini, refresh the list by instantiating an empty list points
+            clickableItems = new List<Point>();
 
             // Get the AutomationElement for the currently focused element.
             AutomationElement focusedElement = AutomationElement.FocusedElement;

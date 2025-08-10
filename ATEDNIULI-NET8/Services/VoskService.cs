@@ -126,7 +126,7 @@ namespace VoskTest
                     }
                 }
 
-                return string.Join(" ", cleanedSegments).Trim() + ". ";
+                return string.Join(" ", cleanedSegments).Trim();
             }
             catch (Exception ex)
             {

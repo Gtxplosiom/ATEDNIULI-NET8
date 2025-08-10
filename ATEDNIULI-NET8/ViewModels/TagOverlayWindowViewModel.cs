@@ -155,3 +155,6 @@ namespace ATEDNIULI_NET8.ViewModels
         }
     }
 }
+
+// TODO: consider adding a mouse listener, para kun an mouse kumiwa ma auto clear an tags
+// or in general may mag change na state or may movement ha window, if possible

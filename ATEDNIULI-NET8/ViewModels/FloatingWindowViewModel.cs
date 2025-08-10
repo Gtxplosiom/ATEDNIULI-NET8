@@ -1,11 +1,12 @@
-﻿using ATEDNIULI_NET8.Services;
-using ATEDNIULI_NET8.Models;
-using System.Windows;
-using System.Numerics;
-using System.Windows.Input;
+﻿using ATEDNIULI_NET8.Models;
+using ATEDNIULI_NET8.Services;
 using ATEDNIULI_NET8.ViewModels.Commands;
 using System.Diagnostics;
+using System.Numerics;
+using System.Windows;
+using System.Windows.Input;
 using VoskTest;
+using static Emgu.CV.OCR.Tesseract;
 
 namespace ATEDNIULI_NET8.ViewModels
 {
@@ -38,8 +39,10 @@ namespace ATEDNIULI_NET8.ViewModels
         // Commands
         // an floating window VM naagi an mga commands kay i found it na more accessible an mga variables dinhi
         public ICommand? ToggleCameraMouse { get; }
-        // TODO: Implement this
         public ICommand? ShowItemsCommand { get; }
+        public ICommand? ClickItemCommand { get; }
+
+        private int _numberToClick = 0;
 
         // keep la an whisper na naka pass banign gamiton ha typing or searching
         public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, VoskService? voskService, IntentService? intentService, UIAutomationService uiAutomationService, CameraMouseWindowViewModel cameraMouseWindowViewModel, TagOverlayWindowViewModel tagOverlayWindowViewModel)
@@ -78,8 +81,12 @@ namespace ATEDNIULI_NET8.ViewModels
             TopState = (int)_screenDimentions.Y - (70 + _taskBarHeight + 25); // 70(height of floating window) and 25(height of notification window)
 
             // Initialize commands
+            // para ma pass an show item command class kan click item command para connected hira
+            var showItemsCommand = new ShowItemsCommand(_tagOverlayWindowViewModel, _uiAutomationService);
+
             ToggleCameraMouse = new ToggleCameraMouseCommand(_cameraMouseWindowViewModel);
-            ShowItemsCommand = new ShowItemsCommand(_tagOverlayWindowViewModel, _uiAutomationService);
+            ShowItemsCommand = showItemsCommand;
+            ClickItemCommand = new ClickItemCommand(_uiAutomationService, showItemsCommand);
         }
 
         // Properties
@@ -160,6 +167,25 @@ namespace ATEDNIULI_NET8.ViewModels
                 NotificationText = transcriptionResult;
             });
 
+            // kun an items naka show, ig pass an intent didi para ma process an first number word na ma-memention
+            // tapos amo an i-cliclick
+            // pero refactor alter na pirme na abri la anay pirme transcriptor para yumakan an floating window
+            // yana kay kailangan mag wake word utro para mkaa click utro
+            // "pick a number to click" or "what number you want to click or along those lines
+            // pero for now adi la anay para pan test la kun nadara a clicking
+            if (_numberToClick == 0)
+            {
+                Debug.WriteLine("modifying number to click");
+                StringToNumberConverter(transcriptionResult);
+            }
+
+            if (_itemsShowed && _numberToClick != 0)
+            {
+                Debug.WriteLine($"clicking the item {_numberToClick}");
+                ClickItemCommand?.Execute(_numberToClick);
+                _numberToClick = 0;
+            }
+
             var intent = _intentService?.PredictIntent(transcriptionResult);
 
             CommandHandler(intent);
@@ -168,15 +194,20 @@ namespace ATEDNIULI_NET8.ViewModels
         // make this prettier, prefer to not use if else statement para kada usa na intent kay maraot lol
         private void CommandHandler(string? command)
         {
-            // TODO: ig change ini para an command toggle or mas better ada kun an cameramousewindowviewmodel instance ig instance nala didi
-            // kay para ma access an mga properties tikang didi kaysa ha cameramouse command class
+            // TODO: refactor this later para diri repetitive an pag toggle hi item showed na flag
+            // ginsugad ko ini na repetitive kay para kun bisan ano an command na ma execute an tag overlay
+            // ma clear anay, for ux purposes
             if (command == "OpenCameraMouse")
             {
                 ToggleCameraMouse?.Execute(true);
+                ShowItemsCommand?.Execute(false);
+                _itemsShowed = false;
             }
             else if (command == "CloseCameraMouse")
             {
                 ToggleCameraMouse?.Execute(false);
+                ShowItemsCommand?.Execute(false);
+                _itemsShowed = false;
             }
             else if (command == "ShowItems")
             {
@@ -189,6 +220,59 @@ namespace ATEDNIULI_NET8.ViewModels
                 _itemsShowed = false;
             }
         }
+
+        // method para ma convert an number word to actual nga number(int)
+        private void StringToNumberConverter(string words)
+        {
+            if (string.IsNullOrWhiteSpace(words))
+                throw new ArgumentException("Input cannot be null or empty.");
+
+            var numberMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+            {
+                {"zero", 0}, {"one", 1}, {"two", 2}, {"three", 3}, {"four", 4},
+                {"five", 5}, {"six", 6}, {"seven", 7}, {"eight", 8}, {"nine", 9},
+                {"ten", 10}, {"eleven", 11}, {"twelve", 12}, {"thirteen", 13}, {"fourteen", 14},
+                {"fifteen", 15}, {"sixteen", 16}, {"seventeen", 17}, {"eighteen", 18}, {"nineteen", 19},
+                {"twenty", 20}, {"thirty", 30}, {"forty", 40}, {"fifty", 50},
+                {"sixty", 60}, {"seventy", 70}, {"eighty", 80}, {"ninety", 90}
+            };
+
+            var scaleMap = new Dictionary<string, int>(StringComparer.OrdinalIgnoreCase)
+            {
+                {"hundred", 100},
+                {"thousand", 1000},
+                {"million", 1_000_000},
+                {"billion", 1_000_000_000}
+            };
+
+            string[] tokens = words.Trim().Split(' ', StringSplitOptions.RemoveEmptyEntries);
+
+            int total = 0;
+            int current = 0;
+
+            foreach (string token in tokens)
+            {
+                if (numberMap.TryGetValue(token, out int value))
+                {
+                    current += value;
+                }
+                else if (scaleMap.TryGetValue(token, out int scale))
+                {
+                    if (scale == 100)
+                    {
+                        current *= scale;
+                    }
+                    else
+                    {
+                        total += current * scale;
+                        current = 0;
+                    }
+                }
+                // If the token is not recognized, just skip it
+            }
+
+            _numberToClick = total + current;
+        }
     }
 }
 
@@ -200,4 +284,4 @@ namespace ATEDNIULI_NET8.ViewModels
 // be it mouse movement, window appearing dissapearing, and window moving
 // implement smart way of clicking and don't rely on intents i think. kay uusa-usahon an every number kun sugad lol
 
-// TODO: cleanup codebase, after the refatoring from using whisper to vosk code is messed up i think
+// TODO: cleanup codebase, labi didi na class kay masarang tapos diri consistent an style ngan syntax 
