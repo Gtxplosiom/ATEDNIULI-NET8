@@ -6,14 +6,13 @@ using System.Numerics;
 using System.Windows;
 using System.Windows.Input;
 using VoskTest;
-using static Emgu.CV.OCR.Tesseract;
 
 namespace ATEDNIULI_NET8.ViewModels
 {
     public class FloatingWindowViewModel : ViewModelBase
     {
         private readonly PorcupineService? _porcupineWakeWordDetector;
-        private readonly WhisperService? _whisperService;   // keep here for typing i think
+        private readonly WhisperService? _whisperService;   // keep here for typing, i think
         private readonly VoskService? _voskService;
         private readonly IntentService? _intentService;
         private readonly UIAutomationService? _uiAutomationService;
@@ -32,6 +31,7 @@ namespace ATEDNIULI_NET8.ViewModels
 
         // Flags
         private bool _itemsShowed = false;  // magagamitan ini para command kun ano an i cli-click
+        public Action<bool>? ItemsShowed;
 
         // Models
         private readonly TranscriptionModel _transcriptionModel = new();
@@ -42,9 +42,8 @@ namespace ATEDNIULI_NET8.ViewModels
         public ICommand? ShowItemsCommand { get; }
         public ICommand? ClickItemCommand { get; }
 
-        private int _numberToClick = 0;
-
         // keep la an whisper na naka pass banign gamiton ha typing or searching
+        // TODO: clean up the codes here 
         public FloatingWindowViewModel(PorcupineService? wakeWordDetector, WhisperService? whisperService, VoskService? voskService, IntentService? intentService, UIAutomationService uiAutomationService, CameraMouseWindowViewModel cameraMouseWindowViewModel, TagOverlayWindowViewModel tagOverlayWindowViewModel)
         {
             _porcupineWakeWordDetector = wakeWordDetector;
@@ -87,6 +86,8 @@ namespace ATEDNIULI_NET8.ViewModels
             ToggleCameraMouse = new ToggleCameraMouseCommand(_cameraMouseWindowViewModel);
             ShowItemsCommand = showItemsCommand;
             ClickItemCommand = new ClickItemCommand(_uiAutomationService, showItemsCommand);
+
+            ItemsShowed += OnItemsShowed;
         }
 
         // Properties
@@ -167,62 +168,81 @@ namespace ATEDNIULI_NET8.ViewModels
                 NotificationText = transcriptionResult;
             });
 
-            // kun an items naka show, ig pass an intent didi para ma process an first number word na ma-memention
-            // tapos amo an i-cliclick
-            // pero refactor alter na pirme na abri la anay pirme transcriptor para yumakan an floating window
-            // yana kay kailangan mag wake word utro para mkaa click utro
-            // "pick a number to click" or "what number you want to click or along those lines
-            // pero for now adi la anay para pan test la kun nadara a clicking
-            if (_numberToClick == 0)
-            {
-                Debug.WriteLine("modifying number to click");
-                StringToNumberConverter(transcriptionResult);
-            }
-
-            if (_itemsShowed && _numberToClick != 0)
-            {
-                Debug.WriteLine($"clicking the item {_numberToClick}");
-                ClickItemCommand?.Execute(_numberToClick);
-                _numberToClick = 0;
-            }
-
             var intent = _intentService?.PredictIntent(transcriptionResult);
 
+            // handles item clicking
+            ItemClickingHandler(transcriptionResult);
+
+            // handles command
+            // this logic is so users can still give commands even when item is showed
             CommandHandler(intent);
         }
 
-        // make this prettier, prefer to not use if else statement para kada usa na intent kay maraot lol
-        private void CommandHandler(string? command)
+        private void OnItemsShowed(bool isShowed)
         {
-            // TODO: refactor this later para diri repetitive an pag toggle hi item showed na flag
-            // ginsugad ko ini na repetitive kay para kun bisan ano an command na ma execute an tag overlay
-            // ma clear anay, for ux purposes
-            if (command == "OpenCameraMouse")
+            _itemsShowed = isShowed;
+        }
+
+        // make this cleaner especially handling the commandexecuted
+        private void ItemClickingHandler(string transcriptionResult)
+        {
+            if (_itemsShowed)
             {
-                ToggleCameraMouse?.Execute(true);
-                ShowItemsCommand?.Execute(false);
-                _itemsShowed = false;
-            }
-            else if (command == "CloseCameraMouse")
-            {
-                ToggleCameraMouse?.Execute(false);
-                ShowItemsCommand?.Execute(false);
-                _itemsShowed = false;
-            }
-            else if (command == "ShowItems")
-            {
-                ShowItemsCommand?.Execute(true);
-                _itemsShowed = true;
-            }
-            else if (command == "HideItems")
-            {
-                ShowItemsCommand?.Execute(false);
-                _itemsShowed = false;
+                var numberToClick = StringToNumberConverter(transcriptionResult);
+
+                if (numberToClick != 0)
+                {
+                    Debug.WriteLine($"clicking the item {numberToClick}");
+                    ClickItemCommand?.Execute(numberToClick);
+                    CommandExecuted();
+                }
             }
         }
 
+        private void CommandHandler(string? command)
+        {
+            switch (command)
+            {
+                case "OpenCameraMouse":
+                    ToggleCameraMouse?.Execute(true);
+                    break;
+
+                // diri na clo-close an window, like diri na ha-hide
+                case "CloseCameraMouse":
+                    ToggleCameraMouse?.Execute(false);
+                    break;
+
+                case "ShowItems":
+                    ShowItemsCommand?.Execute(true);
+                    ItemsShowed?.Invoke(true);
+                    return;
+
+                case "HideItems":
+                    ShowItemsCommand?.Execute(false);
+                    break;
+
+                default:
+                    break;
+            }
+
+            CommandExecuted();
+        }
+
+        private void CommandExecuted()
+        {
+            ShowItemsCommand?.Execute(false);
+            ItemsShowed?.Invoke(false);
+
+            // pag-add conditions didi para ma prevent an stop recording
+            if (_itemsShowed) return;
+
+            // if a command is executed, stop the recording
+            // always last ini dinhi
+            _voskService?.StopRecording();
+        }
+
         // method para ma convert an number word to actual nga number(int)
-        private void StringToNumberConverter(string words)
+        private int StringToNumberConverter(string words)
         {
             if (string.IsNullOrWhiteSpace(words))
                 throw new ArgumentException("Input cannot be null or empty.");
@@ -271,7 +291,7 @@ namespace ATEDNIULI_NET8.ViewModels
                 // If the token is not recognized, just skip it
             }
 
-            _numberToClick = total + current;
+            return total + current;
         }
     }
 }

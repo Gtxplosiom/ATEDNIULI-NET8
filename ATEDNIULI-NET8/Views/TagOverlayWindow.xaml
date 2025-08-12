@@ -10,7 +10,7 @@
         Title="TagOverlayWindow" Height="450" Width="800"
         WindowStyle="None" WindowStartupLocation="Manual" AllowsTransparency="True"
         ResizeMode="NoResize" Topmost="True" Background="Transparent"
-        ShowInTaskbar="False" Focusable="False">
+        ShowInTaskbar="False" Focusable="False" IsHitTestVisible="False">
 
     <Window.Resources>
         <services:TagGeometryConverterService x:Key="TagGeometryConverterService"/>
@@ -19,7 +19,7 @@
     <!-- Let AI cook -->
     <!-- Essentially controls the tag appearance and its bindings here -->
     <Canvas>
-        <ItemsControl ItemsSource="{Binding Tags}">
+        <ItemsControl ItemsSource="{Binding Tags}" IsHitTestVisible="False">
             <ItemsControl.ItemsPanel>
                 <ItemsPanelTemplate>
                     <Canvas IsItemsHost="True"/>

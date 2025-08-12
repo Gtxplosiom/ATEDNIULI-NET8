@@ -66,3 +66,8 @@ namespace ATEDNIULI_NET8.Services
         }
     }
 }
+
+
+// TODO: optimize performance and expand control getter
+// kay yana limitado la an controls na nakikita
+// ngan an taskbar diri nakikita pati desktop an mga top level active window la

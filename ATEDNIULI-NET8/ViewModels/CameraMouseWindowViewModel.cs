@@ -40,7 +40,6 @@ namespace ATEDNIULI_NET8.ViewModels
         private double _targetMoveX;
         private double _targetMoveY;
 
-
         // mouse function control baryabols
         private Timer? _smileTimer;
         private SmileMouseState? _smileState;

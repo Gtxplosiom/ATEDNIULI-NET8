@@ -29,10 +29,6 @@ namespace ATEDNIULI_NET8.ViewModels.Commands
                 {
                     if (_uiAutomationService.clickableItems.IndexOf(coord) + 1 == param)
                     {
-                        // clear tags first para diri maka salipod pag click
-                        Debug.WriteLine($"clicking {param}");
-
-                        // TODO: make sure na cleared anay an tags kay yana 50/50 kun ma click or nasalipod
                         _showItemsCommand.Execute(false);
 
                         MouseSimulator.ClickAt(coord);

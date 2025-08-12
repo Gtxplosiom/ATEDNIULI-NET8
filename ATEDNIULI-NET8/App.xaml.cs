@@ -1,71 +1,65 @@
-﻿using System.Windows;
+﻿using System.IO;
+using System.Text.Json;
+using System.Windows;
 using ATEDNIULI_NET8.ViewModels;
 using ATEDNIULI_NET8.Services;
 using ATEDNIULI_NET8.Views;
 using VoskTest;
 
-namespace ATEDNIULI_NET8;
-
-public partial class App : Application
+namespace ATEDNIULI_NET8
 {
-    // porcupine access key
-    private const string AccessKey = "Ubdx/XnkxCBeLVpW6g67NBTCBRv5+pF/J/3jE9noNbPYXE98zJY09w==";
-
-    // model paths
-    private const string WhisperModelPath = "Assets/Models/ggml-base.en.bin";
-    private const string VoskModelPath = "Assets/Models/VoskModels/vosk-model-small-en-us-0.15";
-    private const string SileroVADModelPath = "Assets/Models/silero_vad.onnx";
-    private const string IntentModelPath = "Assets/Models/intent-model-v1.2.zip";
-    private const string ShapePredictorModelPath = "Assets/Models/shape_predictor_68_face_landmarks.dat";
-
-    protected override void OnStartup(StartupEventArgs e)
+    public partial class App : Application
     {
-        base.OnStartup(e);
+        private AppConfig _appConfig = null!;
 
-        // Ig connect an mainwindowviewmodel
-        // by making it the datacontext han mainwindow
-        var porcupineService = new PorcupineService(AccessKey);
-        var whisperService = new WhisperService(WhisperModelPath, SileroVADModelPath);
-        var voskService = new VoskService(VoskModelPath);
-        var intentService = new IntentService(IntentModelPath);
-        var facialLandmarkService = new FacialLandmarkService(ShapePredictorModelPath);
-        var uiAutomationService = new UIAutomationService();
+        // services
+        private PorcupineService _porcupineService = null!;
+        private WhisperService _whisperService = null!;
+        private VoskService _voskService = null!;
+        private IntentService _intentService = null!;
+        private FacialLandmarkService _facialLandmarkService = null!;
+        private UIAutomationService _uiAutomationService = null!;
 
-        // para ma prevent an dadamo na instances hin foating viewmodel ngan multiple subscription for services as well
-        // cleaner and safer
-        var mainWindowViewModel = new MainWindowViewModel(porcupineService, whisperService, voskService);
-        var mouseActionLabelWindowViewModel = new MouseActionLabelWindowViewModel();
-        var cameraMouseWindowViewModel = new CameraMouseWindowViewModel(facialLandmarkService, mouseActionLabelWindowViewModel);
-        var tagOverlayWindowViewModel = new TagOverlayWindowViewModel();
-
-        // ig connect an camera mouse window view model to the floating window view model
-        // para madali matawag ha commands
-        // TODO: make this cleaner?? for now adi la anay
-        var floatingWindowViewModel = new FloatingWindowViewModel(porcupineService, whisperService, voskService, intentService, uiAutomationService,cameraMouseWindowViewModel, tagOverlayWindowViewModel);
-
-        // Connect datacontext para bindings
-        var floatingWindow = new FloatingWindow()
+        protected override void OnStartup(StartupEventArgs e)
         {
-            DataContext = floatingWindowViewModel
-        };
+            base.OnStartup(e);
 
-        var mouseActionLabelWindow = new MouseActionLabelWindow()
-        {
-            DataContext = mouseActionLabelWindowViewModel
-        };
+            // Load config
+            _appConfig = JsonSerializer.Deserialize<AppConfig>(
+                File.ReadAllText("appsettings.json")
+            ) ?? throw new Exception("Failed to load appsettings.json");
 
-        var notificationWindow = new NotificationWindow()
-        {
-            DataContext = floatingWindowViewModel
-        };
-        notificationWindow.Show();
+            // Initialize services from config
+            _porcupineService = new PorcupineService(_appConfig.AccessKey);
+            _whisperService = new WhisperService(_appConfig.ModelPaths.Whisper, _appConfig.ModelPaths.SileroVAD);
+            _voskService = new VoskService(_appConfig.ModelPaths.Vosk);
+            _intentService = new IntentService(_appConfig.ModelPaths.Intent);
+            _facialLandmarkService = new FacialLandmarkService(_appConfig.ModelPaths.ShapePredictor);
+            _uiAutomationService = new UIAutomationService();
 
-        var mainWindow = new MainWindow()
+            // ViewModels
+            var mouseActionLabelWindowViewModel = new MouseActionLabelWindowViewModel();
+            var cameraMouseWindowViewModel = new CameraMouseWindowViewModel(_facialLandmarkService, mouseActionLabelWindowViewModel);
+            var tagOverlayWindowViewModel = new TagOverlayWindowViewModel();
+            var floatingWindowViewModel = new FloatingWindowViewModel(_porcupineService, _whisperService, _voskService, _intentService, _uiAutomationService, cameraMouseWindowViewModel, tagOverlayWindowViewModel);
+            var mainWindowViewModel = new MainWindowViewModel(_porcupineService, _whisperService, _voskService, floatingWindowViewModel);
+
+            // Windows
+            var floatingWindow = new FloatingWindow { DataContext = floatingWindowViewModel };
+            var mouseActionLabelWindow = new MouseActionLabelWindow { DataContext = mouseActionLabelWindowViewModel };
+            var notificationWindow = new NotificationWindow { DataContext = floatingWindowViewModel };
+            notificationWindow.Show();
+
+            var mainWindow = new MainWindow { DataContext = mainWindowViewModel };
+            mainWindow.Show();
+        }
+
+        protected override void OnExit(ExitEventArgs e)
         {
-            DataContext = mainWindowViewModel
-        };
-        mainWindow.Show();
+            _porcupineService?.StopWakeWordDetection();
+            _voskService?.StopRecording();
+            _whisperService?.StopRecording();
+            base.OnExit(e);
+        }
     }
 }
-
-// TODO: Maybe use a config file or something

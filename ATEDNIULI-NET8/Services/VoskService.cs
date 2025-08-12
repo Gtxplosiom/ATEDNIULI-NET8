@@ -1,8 +1,6 @@
-﻿using NAudio.Wave;
-using System;
-using System.Collections.Generic;
+﻿using NAudio;
+using NAudio.Wave;
 using System.Diagnostics;
-using System.Text;
 using System.Text.Json;
 using Vosk;
 
@@ -18,8 +16,10 @@ namespace VoskTest
 
         // events
         public event Action? DoneTranscription;
-        public event Action? ProcessingTranscription;
         public event Action<string>? TranscriptionResultReady;
+
+        // bools
+        private bool _recording = false;
 
         public VoskService(string voskModelPath)
         {
@@ -52,19 +52,36 @@ namespace VoskTest
             SetupAudioStream();
 
             _waveIn.StartRecording();
+            _recording = true;
         }
 
         public void StopRecording()
         {
-            _waveIn.StopRecording();
-            DoneTranscription?.Invoke();
+            if (_waveIn == null) return;
 
-            _waveIn?.Dispose();
+            _recording = false; // stop processing in OnDataAvailable
+            _waveIn.DataAvailable -= OnDataAvailable; // prevent further callbacks
+
+            try
+            {
+                _waveIn.StopRecording();
+            }
+            catch (MmException ex)
+            {
+                Console.WriteLine($"StopRecording error: {ex.Message}");
+            }
+
+            _waveIn.Dispose();
             _waveIn = null;
+
+            DoneTranscription?.Invoke();
         }
+
 
         private void OnDataAvailable(object sender, WaveInEventArgs e)
         {
+            if (_recording == false) return;
+
             try
             {
                 StreamTranscribe(e.Buffer, e.BytesRecorded);
@@ -88,8 +105,6 @@ namespace VoskTest
                         var cleanedResult = CleanTranscription(rawResult);
 
                         TranscriptionResultReady?.Invoke(cleanedResult);
-
-                        StopRecording();
                     }
                 }
             }
